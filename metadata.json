@@ -1,0 +1,8 @@
+{
+  "name": "Mezzold Controle de Títulos",
+  "description": "Sistema de controle de títulos moderno e minimalista com design Dark Mode Enterprise.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
