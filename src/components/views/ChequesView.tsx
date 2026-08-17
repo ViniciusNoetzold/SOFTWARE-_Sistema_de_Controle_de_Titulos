@@ -315,70 +315,80 @@ export function ChequesView() {
             {filteredCheques.map((c) => (
               <div 
                 key={c.id} 
-                className="relative bg-gradient-to-br from-[#1c2230] via-[#161922] to-[#12141c] border border-[#2d374a] hover:border-red-500/50 rounded-2xl p-4 shadow-xl flex flex-col justify-between group transition-all duration-300 hover:scale-[1.01]"
+                className="relative bg-gradient-to-br from-[#161C28] via-[#10141E] to-[#0A0D14] border border-[#26334A] hover:border-blue-500/60 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.5)] flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(37,99,235,0.15)] overflow-hidden"
               >
-                {/* Marca d'água de Cheque Bancário */}
-                <div className="absolute top-2 right-4 text-slate-700/20 font-black text-4xl select-none pointer-events-none font-mono">
+                {/* Linhas Geométricas de Segurança / Padrão Bancário */}
+                <div className="absolute inset-0 bg-[radial-gradient(#1E293B_1px,transparent_1px)] [background-size:16px_16px] opacity-25 pointer-events-none" />
+                
+                {/* Marca d'água de Cheque Bancário Sutil */}
+                <div className="absolute top-3 right-4 text-slate-700/15 font-black text-3xl select-none pointer-events-none font-mono tracking-widest">
                   CHEQUE
                 </div>
 
                 {/* Top Cheque Card Header */}
-                <div className="flex items-center justify-between mb-3 border-b border-[#283144] pb-2.5 z-10">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#222838] border border-[#323d54] flex items-center justify-center font-bold text-xs text-slate-200">
-                      <Building2 size={16} className="text-red-400" />
+                <div className="flex items-center justify-between mb-3 border-b border-[#1E273A] pb-2.5 z-10">
+                  <div className="flex items-center gap-2.5">
+                    {/* Chip de Segurança Dourado / Holográfico */}
+                    <div className="w-8 h-6 rounded bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 border border-amber-300/60 flex items-center justify-center shadow-inner shrink-0 relative overflow-hidden">
+                      <div className="w-full h-[1px] bg-amber-900/40 absolute top-2" />
+                      <div className="h-full w-[1px] bg-amber-900/40 absolute left-3" />
                     </div>
                     <div>
-                      <h4 className="font-extrabold text-slate-100 text-xs tracking-wide">{c.banco}</h4>
+                      <h4 className="font-bold text-slate-100 text-xs tracking-tight flex items-center gap-1.5">
+                        <span>{c.banco}</span>
+                      </h4>
                       <p className="text-[10px] font-mono text-slate-400">Ag: {c.agencia} | CC: {c.conta}</p>
                     </div>
                   </div>
 
-                  <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border uppercase ${
-                    c.tipo === 'RECEBIDO' ? 'bg-emerald-950/80 border-emerald-700 text-emerald-300' : 'bg-red-950/80 border-red-700 text-red-300'
+                  <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-md border tracking-wider uppercase ${
+                    c.tipo === 'RECEBIDO' 
+                      ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300' 
+                      : 'bg-blue-950/60 border-blue-500/40 text-blue-300'
                   }`}>
                     {c.tipo}
                   </span>
                 </div>
 
                 {/* Body Cheque Info */}
-                <div className="space-y-2 mb-3 z-10">
+                <div className="space-y-2.5 mb-3 z-10">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-[10px] font-mono uppercase text-slate-400">Titular da Folha:</span>
-                    <span className="text-[10px] font-mono bg-[#202738] text-slate-300 px-2 py-0.5 rounded border border-[#2d374a]">
+                    <span className="text-[9px] font-mono uppercase text-slate-400 tracking-wider">Titular da Folha:</span>
+                    <span className="text-[10px] font-mono bg-[#141A26] text-blue-300 px-2 py-0.5 rounded border border-[#243147] font-semibold">
                       N° {c.numeroCheque}
                     </span>
                   </div>
                   
-                  <p className="text-sm font-black text-slate-100 uppercase tracking-wide truncate">
+                  <p className="text-xs font-bold text-slate-100 uppercase tracking-wide truncate">
                     {c.titular}
                   </p>
 
-                  <div className="bg-[#11131a] p-2.5 rounded-xl border border-[#283144] flex items-center justify-between">
+                  {/* Painel do Valor & Vencimento com Efeito Vidro Escuro */}
+                  <div className="bg-[#0B0E14]/90 p-3 rounded-xl border border-[#1E273A] flex items-center justify-between shadow-inner">
                     <div>
-                      <span className="text-[9px] font-mono text-slate-400 block uppercase">Valor Nominal:</span>
-                      <span className="text-base font-black text-slate-100 font-mono">
+                      <span className="text-[9px] font-mono text-slate-400 block uppercase tracking-wider">Valor Nominal:</span>
+                      <span className="text-base font-black text-slate-100 font-mono tracking-tight">
                         R$ {formatCurrency(c.valor)}
                       </span>
                     </div>
 
-                    <div>
-                      <span className="text-[9px] font-mono text-slate-400 block uppercase text-right">Bom Para:</span>
-                      <span className="text-xs font-mono font-bold text-red-400 block text-right">
+                    <div className="text-right">
+                      <span className="text-[9px] font-mono text-slate-400 block uppercase tracking-wider">Bom Para:</span>
+                      <span className="text-xs font-mono font-bold text-rose-400 block">
                         {formatDateBR(c.vencimento)}
                       </span>
                     </div>
                   </div>
 
                   {/* Selo de Auditoria / Rastreamento do Usuário */}
-                  <div className="pt-1 flex items-center justify-between text-[10px] font-mono text-slate-400 border-t border-[#232a3c]">
-                    <span className="flex items-center gap-1 text-slate-300 truncate" title={`Registrado por ${c.criado_por_nome || 'Sistema'}`}>
-                      <User size={12} className="text-red-400 shrink-0" />
+                  <div className="pt-1.5 flex items-center justify-between text-[10px] font-mono text-slate-400 border-t border-[#1C2436]">
+                    <span className="flex items-center gap-1.5 text-slate-300 truncate" title={`Registrado por ${c.criado_por_nome || 'Sistema'}`}>
+                      <User size={12} className="text-blue-400 shrink-0" />
                       <span className="truncate">{c.criado_por_nome || 'Sistema'}</span>
                     </span>
                     <button
                       onClick={() => setSelectedChequeForAudit(c)}
-                      className="text-red-400 hover:text-red-300 flex items-center gap-1 font-bold hover:underline shrink-0"
+                      className="text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold hover:underline shrink-0"
                     >
                       <Info size={12} /> Rastreio
                     </button>
@@ -386,11 +396,11 @@ export function ChequesView() {
                 </div>
 
                 {/* Footer Cheque Card Actions */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#283144] z-10">
-                  <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded ${
-                    c.status === 'EM ABERTO' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
-                    c.status === 'COMPENSADO' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
-                    'bg-red-500/20 text-red-300 border border-red-500/40'
+                <div className="flex items-center justify-between pt-2.5 border-t border-[#1E273A] z-10 gap-2">
+                  <span className={`text-[10px] font-semibold font-mono px-2 py-0.5 rounded-md ${
+                    c.status === 'EM ABERTO' ? 'bg-amber-950/50 text-amber-300 border border-amber-500/40' :
+                    c.status === 'COMPENSADO' ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/40' :
+                    'bg-rose-950/50 text-rose-300 border border-rose-500/40'
                   }`}>
                     ● {c.status}
                   </span>
@@ -400,14 +410,14 @@ export function ChequesView() {
                       <>
                         <button
                           onClick={() => updateChequeStatus(c.id, 'COMPENSADO')}
-                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all shadow-sm"
+                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all shadow-sm"
                           title="Compensar Cheque"
                         >
                           <CheckCircle2 size={12} /> Compensar
                         </button>
                         <button
                           onClick={() => updateChequeStatus(c.id, 'DEVOLVIDO')}
-                          className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all shadow-sm"
+                          className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all shadow-sm"
                           title="Marcar como Devolvido"
                         >
                           <XCircle size={12} /> Devolver
@@ -416,10 +426,10 @@ export function ChequesView() {
                     ) : (
                       <button
                         onClick={() => updateChequeStatus(c.id, 'EM ABERTO')}
-                        className="px-2 py-1 bg-[#222836] text-slate-300 hover:bg-slate-700 rounded-lg text-[10px] font-medium flex items-center gap-1"
+                        className="px-2 py-1 bg-[#1A2232] text-slate-300 hover:bg-[#253047] rounded-lg text-[10px] font-medium flex items-center gap-1 transition-colors border border-[#2B3852]"
                         title="Reabrir Cheque"
                       >
-                        <RotateCcw size={12} /> Reabrir
+                        <RotateCcw size={11} /> Reabrir
                       </button>
                     )}
 
@@ -427,10 +437,10 @@ export function ChequesView() {
                       onClick={() => {
                         if (confirm(`Remover cheque N° ${c.numeroCheque}?`)) removeCheque(c.id);
                       }}
-                      className="p-1 bg-[#222836] text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                      className="p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                       title="Excluir Cheque"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={12} />
                     </button>
                   </div>
                 </div>
