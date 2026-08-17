@@ -235,7 +235,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [logs, setLogs] = useState<AuditLog[]>(() => {
     const saved = localStorage.getItem('mezzold_logs');
-    return saved ? JSON.parse(saved) : initialLogs;
+    if (saved) {
+      try {
+        const parsed: AuditLog[] = JSON.parse(saved);
+        const sanitized = parsed.filter(l => 
+          !(l.detalhes || '').toUpperCase().includes('HANSEN') && 
+          !(l.acao || '').toUpperCase().includes('HANSEN') &&
+          !(l.usuario || '').toUpperCase().includes('HANSEN')
+        );
+        localStorage.setItem('mezzold_logs', JSON.stringify(sanitized));
+        return sanitized;
+      } catch {
+        return initialLogs;
+      }
+    }
+    return initialLogs;
   });
 
   const [empresaConfig, setEmpresaConfig] = useState<EmpresaConfig>(() => {
