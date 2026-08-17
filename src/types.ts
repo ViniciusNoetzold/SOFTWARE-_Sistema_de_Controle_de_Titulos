@@ -5,6 +5,7 @@ export type TipoMovimentacao = 'BAIXA_TOTAL' | 'BAIXA_PARCIAL' | 'ESTORNO';
 export type TipoPessoa = 'PF' | 'PJ';
 
 export type PerfilUsuario = 'ADMIN' | 'OPERADOR' | 'FINANCEIRO';
+export type TemaVisual = 'SAPPHIRE_DARK' | 'CHARCOAL_DARK' | 'EMERALD_DARK' | 'RUBY_DARK' | 'CORPORATE_LIGHT';
 
 export interface Usuario {
   id: string;

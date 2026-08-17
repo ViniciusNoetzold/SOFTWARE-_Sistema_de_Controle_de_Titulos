@@ -3,7 +3,7 @@
 /* ==========================================================================
    DESIGN TOKENS & PALETA DE CORES SÓBRIA, PROFISSIONAL E MODERNA
    ========================================================================== */
-:root {
+:root, [data-theme="SAPPHIRE_DARK"] {
   /* Tipografia */
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: 'Plus Jakarta Sans', var(--font-sans);
@@ -32,7 +32,7 @@
   --color-primary-hover: #1D4ED8;
   --color-primary-subtle: rgba(37, 99, 235, 0.15);
 
-  /* Acentos Financeiros (Status Sóbrios) */
+  /* Acentos Financeiros */
   --color-accent-emerald: #10B981;
   --color-accent-emerald-subtle: rgba(16, 185, 129, 0.12);
   --color-accent-amber: #F59E0B;
@@ -40,6 +40,70 @@
   --color-accent-rose: #EF4444;
   --color-accent-rose-subtle: rgba(239, 68, 68, 0.12);
   --color-accent-indigo: #6366F1;
+}
+
+/* Tema 2: Dark Charcoal / Grafite Neutro */
+[data-theme="CHARCOAL_DARK"] {
+  --color-bg-base: #111215;
+  --color-bg-surface: #17191E;
+  --color-bg-elevated: #20232A;
+  --color-bg-subtle: #292D36;
+  --color-bg-input: #141518;
+  --color-border-subtle: #2A2E38;
+  --color-border-default: #383E4B;
+  --color-border-focus: #64748B;
+  --color-primary: #475569;
+  --color-primary-hover: #334155;
+  --color-primary-subtle: rgba(71, 85, 105, 0.18);
+}
+
+/* Tema 3: Emerald Banking / Verde Esmeralda */
+[data-theme="EMERALD_DARK"] {
+  --color-bg-base: #08100D;
+  --color-bg-surface: #0E1A16;
+  --color-bg-elevated: #142620;
+  --color-bg-subtle: #1C332B;
+  --color-bg-input: #0A1411;
+  --color-border-subtle: #1D372E;
+  --color-border-default: #2A4C40;
+  --color-border-focus: #10B981;
+  --color-primary: #059669;
+  --color-primary-hover: #047857;
+  --color-primary-subtle: rgba(5, 150, 105, 0.18);
+}
+
+/* Tema 4: Ruby Executive / Vermelho Mezzold Clássico */
+[data-theme="RUBY_DARK"] {
+  --color-bg-base: #0F0A0D;
+  --color-bg-surface: #181015;
+  --color-bg-elevated: #22151D;
+  --color-bg-subtle: #2E1B27;
+  --color-bg-input: #120C10;
+  --color-border-subtle: #331C2A;
+  --color-border-default: #4A273D;
+  --color-border-focus: #E11D48;
+  --color-primary: #DC2626;
+  --color-primary-hover: #B91C1C;
+  --color-primary-subtle: rgba(220, 38, 38, 0.18);
+}
+
+/* Tema 5: Corporate Light / Modo Claro Executivo */
+[data-theme="CORPORATE_LIGHT"] {
+  --color-bg-base: #F1F5F9;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-subtle: #E2E8F0;
+  --color-bg-input: #F8FAFC;
+  --color-border-subtle: #E2E8F0;
+  --color-border-default: #CBD5E1;
+  --color-border-focus: #2563EB;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748B;
+  --color-text-dim: #94A3B8;
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-subtle: rgba(37, 99, 235, 0.1);
 }
 
 /* ==========================================================================

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Entidade, Titulo, MovimentacaoTitulo, EmpresaConfig, Usuario, PerfilUsuario, AssinaturaLicenca, LicencaStatus } from '../types';
+import { Entidade, Titulo, MovimentacaoTitulo, EmpresaConfig, Usuario, PerfilUsuario, AssinaturaLicenca, LicencaStatus, TemaVisual } from '../types';
 import { mockEntidades, mockTitulos, mockMovimentacoes } from '../lib/mockData';
 
 export const defaultAssinaturaLicenca: AssinaturaLicenca = {
@@ -130,6 +130,9 @@ interface AppContextType {
   movimentacoes: MovimentacaoTitulo[];
   logs: AuditLog[];
   auditLogs: AuditLog[];
+  // Configurações e Temas Visuais
+  tema: TemaVisual;
+  setTema: (tema: TemaVisual) => void;
   empresaConfig: EmpresaConfig;
   toastMessage: string | null;
   showToast: (msg: string) => void;
@@ -303,6 +306,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const saved = localStorage.getItem('mezzold_empresa_config');
     return saved ? JSON.parse(saved) : defaultEmpresaConfig;
   });
+
+  // Tema Visual Ativo
+  const [tema, setTemaState] = useState<TemaVisual>(() => {
+    const saved = localStorage.getItem('mezzold_tema_visual');
+    return (saved as TemaVisual) || 'SAPPHIRE_DARK';
+  });
+
+  const setTema = (novoTema: TemaVisual) => {
+    setTemaState(novoTema);
+    localStorage.setItem('mezzold_tema_visual', novoTema);
+    document.documentElement.setAttribute('data-theme', novoTema);
+  };
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', tema);
+  }, [tema]);
 
   // Estado da Assinatura e Licenciamento (Controlado pelo Mestre 000)
   const [assinaturaLicenca, setAssinaturaLicenca] = useState<AssinaturaLicenca>(() => {
@@ -768,6 +787,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       empresaConfig,
       toastMessage,
       showToast,
+      tema,
+      setTema,
       updateEmpresaConfig,
       addEntidade,
       updateEntidade,

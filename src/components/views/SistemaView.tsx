@@ -2,17 +2,17 @@ import { useState, FormEvent } from 'react';
 import { 
   Settings, Save, Shield, History, Building2, UserPlus, 
   Database, RefreshCw, CheckCircle2, Sliders, Lock, Mail, Phone, MapPin, X, Network, Server, Cpu, Terminal,
-  QrCode, Eye, Check, AlertTriangle, Layers
+  QrCode, Eye, Check, AlertTriangle, Layers, Palette, Moon, Sun, Sparkles
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { testFirebirdConnection, getFirebirdConfig, ConnectionTestResult } from '../../lib/firebirdClient';
-import { EmpresaConfig } from '../../types';
+import { EmpresaConfig, TemaVisual } from '../../types';
 
 export function SistemaView() {
-  const { auditLogs, empresaConfig, updateEmpresaConfig, addLog, showToast, usuarios, toggleUsuarioAtivo, currentUser } = useAppContext();
+  const { auditLogs, empresaConfig, updateEmpresaConfig, addLog, showToast, usuarios, toggleUsuarioAtivo, currentUser, tema, setTema } = useAppContext();
 
   // Abas de Configuração
-  const [activeTab, setActiveTab] = useState<'EMPRESA' | 'FIREBIRD' | 'USUARIOS' | 'AUDITORIA'>('EMPRESA');
+  const [activeTab, setActiveTab] = useState<'EMPRESA' | 'FIREBIRD' | 'USUARIOS' | 'AUDITORIA' | 'TEMAS'>('EMPRESA');
 
   // Form Dados da Empresa (Carrega o que estiver no contexto e permite edição total)
   const [empresaData, setEmpresaData] = useState<EmpresaConfig>({
@@ -130,6 +130,18 @@ export function SistemaView() {
           >
             <History size={15} />
             <span>Auditoria & Diagnóstico</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('TEMAS')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'TEMAS'
+                ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-[#1a1e2c]'
+            }`}
+          >
+            <Palette size={15} />
+            <span>Aparência & Temas</span>
           </button>
 
         </div>
@@ -590,6 +602,219 @@ export function SistemaView() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            ABA 5: TEMAS & APARÊNCIA VISUAL
+            ========================================================================= */}
+        {activeTab === 'TEMAS' && (
+          <div className="bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl flex-1 flex flex-col space-y-5">
+            <div className="flex items-center justify-between border-b border-[#2b3242] pb-3">
+              <div>
+                <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+                  <Palette size={16} className="text-blue-400" /> Esquemas de Cores & Personalização Visual
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  Selecione o tema de cores desejado para a interface. A preferência é salva automaticamente no seu computador.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-[#10141E] px-3 py-1.5 rounded-xl border border-[#26334A] text-xs font-mono">
+                <span className="text-slate-400">Tema Ativo:</span>
+                <span className="text-blue-400 font-bold">
+                  {tema === 'SAPPHIRE_DARK' ? 'Azul Safira (Executivo)' :
+                   tema === 'CHARCOAL_DARK' ? 'Grafite Dark (Neutro)' :
+                   tema === 'EMERALD_DARK' ? 'Esmeralda Banking' :
+                   tema === 'RUBY_DARK' ? 'Ruby Mezzold' : 'Corporate Light (Claro)'}
+                </span>
+              </div>
+            </div>
+
+            {/* Grid de Seleção de Temas */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              {/* Opção 1: Azul Safira Executivo */}
+              <div 
+                onClick={() => {
+                  setTema('SAPPHIRE_DARK');
+                  showToast('Tema Azul Safira Executivo aplicado com sucesso!');
+                }}
+                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 relative group flex flex-col justify-between ${
+                  tema === 'SAPPHIRE_DARK'
+                    ? 'bg-[#121620] border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.25)] ring-2 ring-blue-500/30'
+                    : 'bg-[#11131a] border-[#2b3242] hover:border-blue-500/50 hover:bg-[#151924]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-100 flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 rounded-full bg-blue-600 shadow-sm" />
+                      Azul Safira Executivo
+                    </span>
+                    {tema === 'SAPPHIRE_DARK' && (
+                      <span className="bg-blue-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Check size={10} strokeWidth={3} /> Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mb-3">
+                    Padrão moderno corporativo com tons de ardósia escura e acentos em azul safira.
+                  </p>
+                </div>
+                <div className="flex gap-1.5 pt-2 border-t border-[#202738]">
+                  <div className="w-6 h-6 rounded bg-[#0B0E14] border border-[#2A3349]" title="Fundo Base" />
+                  <div className="w-6 h-6 rounded bg-[#121620] border border-[#2A3349]" title="Superfície" />
+                  <div className="w-6 h-6 rounded bg-[#2563EB]" title="Primária" />
+                  <div className="w-6 h-6 rounded bg-[#10B981]" title="Sucesso" />
+                </div>
+              </div>
+
+              {/* Opção 2: Dark Charcoal / Grafite */}
+              <div 
+                onClick={() => {
+                  setTema('CHARCOAL_DARK');
+                  showToast('Tema Grafite Dark Neutro aplicado com sucesso!');
+                }}
+                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 relative group flex flex-col justify-between ${
+                  tema === 'CHARCOAL_DARK'
+                    ? 'bg-[#17191E] border-slate-400 shadow-[0_0_20px_rgba(100,116,139,0.25)] ring-2 ring-slate-400/30'
+                    : 'bg-[#11131a] border-[#2b3242] hover:border-slate-500/50 hover:bg-[#181A20]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-100 flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 rounded-full bg-slate-500 shadow-sm" />
+                      Grafite Dark (Neutro)
+                    </span>
+                    {tema === 'CHARCOAL_DARK' && (
+                      <span className="bg-slate-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Check size={10} strokeWidth={3} /> Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mb-3">
+                    Estética sóbria e discreta em tons monocromáticos de carvão e cinza espacial.
+                  </p>
+                </div>
+                <div className="flex gap-1.5 pt-2 border-t border-[#2A2E38]">
+                  <div className="w-6 h-6 rounded bg-[#111215] border border-[#383E4B]" title="Fundo Base" />
+                  <div className="w-6 h-6 rounded bg-[#17191E] border border-[#383E4B]" title="Superfície" />
+                  <div className="w-6 h-6 rounded bg-[#475569]" title="Primária" />
+                  <div className="w-6 h-6 rounded bg-[#10B981]" title="Sucesso" />
+                </div>
+              </div>
+
+              {/* Opção 3: Esmeralda Banking */}
+              <div 
+                onClick={() => {
+                  setTema('EMERALD_DARK');
+                  showToast('Tema Esmeralda Banking aplicado com sucesso!');
+                }}
+                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 relative group flex flex-col justify-between ${
+                  tema === 'EMERALD_DARK'
+                    ? 'bg-[#0E1A16] border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.25)] ring-2 ring-emerald-500/30'
+                    : 'bg-[#11131a] border-[#2b3242] hover:border-emerald-500/50 hover:bg-[#0D1814]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-100 flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm" />
+                      Esmeralda Banking
+                    </span>
+                    {tema === 'EMERALD_DARK' && (
+                      <span className="bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Check size={10} strokeWidth={3} /> Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mb-3">
+                    Inspirado em plataformas bancárias internacionais e finanças sustentáveis.
+                  </p>
+                </div>
+                <div className="flex gap-1.5 pt-2 border-t border-[#1D372E]">
+                  <div className="w-6 h-6 rounded bg-[#08100D] border border-[#2A4C40]" title="Fundo Base" />
+                  <div className="w-6 h-6 rounded bg-[#0E1A16] border border-[#2A4C40]" title="Superfície" />
+                  <div className="w-6 h-6 rounded bg-[#059669]" title="Primária" />
+                  <div className="w-6 h-6 rounded bg-[#F59E0B]" title="Atenção" />
+                </div>
+              </div>
+
+              {/* Opção 4: Ruby Mezzold */}
+              <div 
+                onClick={() => {
+                  setTema('RUBY_DARK');
+                  showToast('Tema Ruby Mezzold aplicado com sucesso!');
+                }}
+                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 relative group flex flex-col justify-between ${
+                  tema === 'RUBY_DARK'
+                    ? 'bg-[#181015] border-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.25)] ring-2 ring-rose-500/30'
+                    : 'bg-[#11131a] border-[#2b3242] hover:border-rose-500/50 hover:bg-[#1A1218]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-100 flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 rounded-full bg-rose-600 shadow-sm" />
+                      Ruby Mezzold
+                    </span>
+                    {tema === 'RUBY_DARK' && (
+                      <span className="bg-rose-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Check size={10} strokeWidth={3} /> Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mb-3">
+                    Visual clássico com nuances escarlate e alto dinamismo para auditoria.
+                  </p>
+                </div>
+                <div className="flex gap-1.5 pt-2 border-t border-[#331C2A]">
+                  <div className="w-6 h-6 rounded bg-[#0F0A0D] border border-[#4A273D]" title="Fundo Base" />
+                  <div className="w-6 h-6 rounded bg-[#181015] border border-[#4A273D]" title="Superfície" />
+                  <div className="w-6 h-6 rounded bg-[#DC2626]" title="Primária" />
+                  <div className="w-6 h-6 rounded bg-[#10B981]" title="Sucesso" />
+                </div>
+              </div>
+
+              {/* Opção 5: Corporate Light (Claro) */}
+              <div 
+                onClick={() => {
+                  setTema('CORPORATE_LIGHT');
+                  showToast('Tema Corporate Light (Modo Claro) aplicado com sucesso!');
+                }}
+                className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 relative group flex flex-col justify-between ${
+                  tema === 'CORPORATE_LIGHT'
+                    ? 'bg-slate-100 border-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.25)] ring-2 ring-blue-600/30'
+                    : 'bg-[#11131a] border-[#2b3242] hover:border-blue-400/50 hover:bg-[#161922]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-100 flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 rounded-full bg-slate-200 border border-slate-400 shadow-sm" />
+                      Corporate Light (Claro)
+                    </span>
+                    {tema === 'CORPORATE_LIGHT' && (
+                      <span className="bg-blue-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Check size={10} strokeWidth={3} /> Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mb-3">
+                    Modo claro com alto contraste para ambientes iluminados e escritórios.
+                  </p>
+                </div>
+                <div className="flex gap-1.5 pt-2 border-t border-slate-700">
+                  <div className="w-6 h-6 rounded bg-[#F1F5F9] border border-slate-300" title="Fundo Base" />
+                  <div className="w-6 h-6 rounded bg-[#FFFFFF] border border-slate-300" title="Superfície" />
+                  <div className="w-6 h-6 rounded bg-[#2563EB]" title="Primária" />
+                  <div className="w-6 h-6 rounded bg-[#0F172A]" title="Texto" />
+                </div>
+              </div>
+
             </div>
           </div>
         )}
