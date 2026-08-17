@@ -10,17 +10,11 @@ interface WindowFrameProps {
 }
 
 export function WindowFrame({ title, subtitle, icon, onClose, children }: WindowFrameProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   return (
     <div className="absolute inset-0 z-20 flex items-center justify-center p-1 sm:p-2 md:p-3 animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
       
       {/* Window Container */}
-      <div 
-        className={`relative bg-[#1a1d26]/95 backdrop-blur-2xl border border-[#2d3342] rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden transition-all duration-300 pointer-events-auto ${
-          isExpanded ? 'w-full h-full rounded-none' : 'w-full h-full max-w-[99vw] max-h-[99vh] sm:max-w-[98%] sm:max-h-[98%]'
-        }`}
-      >
+      <div className="relative bg-[#1a1d26]/95 backdrop-blur-2xl border border-[#2d3342] rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden w-full h-full max-w-[99vw] max-h-[99vh] sm:max-w-[98%] sm:max-h-[98%] pointer-events-auto">
         
         {/* Window Header / Titlebar */}
         <div className="px-5 py-2.5 bg-[#14171d]/90 border-b border-[#2d3342] flex items-center justify-between select-none shrink-0">
@@ -43,16 +37,8 @@ export function WindowFrame({ title, subtitle, icon, onClose, children }: Window
           {/* Window Action Controls */}
           <div className="flex items-center gap-1">
             <button 
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-[#222733] rounded-md transition-colors"
-              title={isExpanded ? "Tamanho Normal" : "Dimensionar / Expandir"}
-            >
-              {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-            </button>
-
-            <button 
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-red-600 rounded-md transition-colors"
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-rose-600 rounded-lg transition-all"
               title="Fechar Janela (X)"
             >
               <X size={15} />
