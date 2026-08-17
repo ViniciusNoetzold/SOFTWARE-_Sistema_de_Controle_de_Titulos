@@ -26,7 +26,7 @@ export function StatusBar() {
   }, []);
 
   return (
-    <div className="flex items-center justify-between bg-[#14171d] border-t border-[#252a36] px-5 py-2 text-[11px] text-slate-400 select-none z-10 relative">
+    <div className="status-bar no-print flex items-center justify-between bg-[#14171d] border-t border-[#252a36] px-5 py-2 text-[11px] text-slate-400 select-none z-10 relative">
       {/* Canto Inferior Esquerdo com Versão */}
       <div className="flex items-center gap-3">
         <span className="font-mono text-slate-400 font-medium">Pronto</span>

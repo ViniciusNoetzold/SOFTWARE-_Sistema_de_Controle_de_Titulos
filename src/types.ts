@@ -27,6 +27,8 @@ export interface EmpresaConfig {
   email: string;
   telefone: string;
   endereco: string;
+  chavePix?: string;
+  favorecidoPix?: string;
 }
 
 export interface Entidade {

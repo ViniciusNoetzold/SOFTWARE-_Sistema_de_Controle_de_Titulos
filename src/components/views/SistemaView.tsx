@@ -1,16 +1,31 @@
 import { useState, FormEvent } from 'react';
 import { 
   Settings, Save, Shield, History, Building2, UserPlus, 
-  Database, RefreshCw, CheckCircle2, Sliders, Lock, Mail, Phone, MapPin, X, Network, Server, Cpu, Terminal
+  Database, RefreshCw, CheckCircle2, Sliders, Lock, Mail, Phone, MapPin, X, Network, Server, Cpu, Terminal,
+  QrCode, Eye, Check, AlertTriangle, Layers
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { testFirebirdConnection, getFirebirdConfig, ConnectionTestResult } from '../../lib/firebirdClient';
+import { EmpresaConfig } from '../../types';
 
 export function SistemaView() {
   const { auditLogs, empresaConfig, updateEmpresaConfig, addLog, showToast, usuarios } = useAppContext();
 
-  // Form Dados da Empresa
-  const [empresaData, setEmpresaData] = useState(empresaConfig);
+  // Abas de Configuração
+  const [activeTab, setActiveTab] = useState<'EMPRESA' | 'FIREBIRD' | 'USUARIOS' | 'AUDITORIA'>('EMPRESA');
+
+  // Form Dados da Empresa (Carrega o que estiver no contexto e permite edição total)
+  const [empresaData, setEmpresaData] = useState<EmpresaConfig>({
+    razaoSocial: empresaConfig.razaoSocial || '',
+    nomeFantasia: empresaConfig.nomeFantasia || '',
+    cnpj: empresaConfig.cnpj || '',
+    ie: empresaConfig.ie || '',
+    email: empresaConfig.email || '',
+    telefone: empresaConfig.telefone || '',
+    endereco: empresaConfig.endereco || '',
+    chavePix: empresaConfig.chavePix || empresaConfig.cnpj || '',
+    favorecidoPix: empresaConfig.favorecidoPix || empresaConfig.razaoSocial || ''
+  });
 
   // Parâmetros Financeiros Globais
   const [parametros, setParametros] = useState({
@@ -29,8 +44,8 @@ export function SistemaView() {
   const handleSaveEmpresa = (e: FormEvent) => {
     e.preventDefault();
     updateEmpresaConfig(empresaData);
-    addLog('Configurações', 'Atualizou os dados cadastrais da empresa');
-    showToast('Dados cadastrais da empresa salvos com sucesso!');
+    addLog('Configurações', `Atualizou os dados da empresa para "${empresaData.razaoSocial || empresaData.nomeFantasia}" (CNPJ: ${empresaData.cnpj})`);
+    showToast('Dados cadastrais da empresa e dados PIX salvos com sucesso!');
   };
 
   // Handler Salvar Parâmetros Financeiros
@@ -58,94 +73,349 @@ export function SistemaView() {
 
   const handleMaintenance = (actionName: string) => {
     addLog('Manutenção', `Executou a rotina de ${actionName}`);
-    showToast(`Manutenção: ${actionName} executada com sucesso 100%!`);
+    showToast(`Manutenção: ${actionName} executada com sucesso!`);
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-4 animate-in fade-in duration-300 select-none text-slate-200 overflow-y-auto pr-1">
+    <div className="w-full h-full flex flex-col gap-3 animate-in fade-in duration-300 select-none text-slate-200 overflow-hidden">
       
-      {/* Top Banner */}
-      <div className="flex items-center justify-between bg-[#161922] border border-[#2b3242] rounded-2xl px-4 py-3 shadow-md shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
-            <Settings size={20} />
-          </div>
-          <div>
-            <h1 className="text-xs font-black uppercase tracking-wider text-slate-100">Configurações Globais do Sistema</h1>
-            <p className="text-[11px] text-slate-400">Gerencie parâmetros corporativos, conexão Firebird em rede e auditoria</p>
-          </div>
+      {/* Top Navigation Tabs */}
+      <div className="flex items-center justify-between bg-[#161922] border border-[#2b3242] rounded-2xl p-2 shadow-md shrink-0">
+        
+        <div className="flex items-center gap-1.5 overflow-x-auto">
+          
+          <button
+            onClick={() => setActiveTab('EMPRESA')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'EMPRESA'
+                ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-[#1a1e2c]'
+            }`}
+          >
+            <Building2 size={15} />
+            <span>Dados da Empresa & PIX</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('FIREBIRD')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'FIREBIRD'
+                ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-[#1a1e2c]'
+            }`}
+          >
+            <Server size={15} />
+            <span>Banco Firebird (Rede)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('USUARIOS')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'USUARIOS'
+                ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-[#1a1e2c]'
+            }`}
+          >
+            <Shield size={15} />
+            <span>Usuários & Permissões ({usuarios.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('AUDITORIA')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'AUDITORIA'
+                ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-[#1a1e2c]'
+            }`}
+          >
+            <History size={15} />
+            <span>Auditoria & Diagnóstico</span>
+          </button>
+
         </div>
 
-        {/* Indicador de Status do Banco Firebird */}
-        <div className="flex items-center gap-2 bg-[#11131a] px-3.5 py-1.5 rounded-xl border border-emerald-500/30">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-          <div className="text-[11px] font-mono">
-            <span className="text-slate-400">Firebird Network: </span>
-            <span className="text-emerald-400 font-bold">ALIAS [{firebirdConfig.database}] ON {firebirdConfig.host}</span>
-          </div>
+        {/* Status Indicador Firebird */}
+        <div className="hidden md:flex items-center gap-2 bg-[#11131a] px-3 py-1 rounded-xl border border-emerald-500/30 text-[11px] font-mono">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <span className="text-slate-400">Firebird: </span>
+          <span className="text-emerald-400 font-bold">ALIAS [{firebirdConfig.database}]</span>
         </div>
+
       </div>
 
-      <div className="grid grid-cols-12 gap-4">
+      {/* Conteúdo Principal por Aba */}
+      <div className="flex-1 overflow-y-auto pr-1">
         
-        {/* COLUNA ESQUERDA: DADOS DA EMPRESA & BANCO FIREBIRD */}
-        <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
-          
-          {/* Card Especial de Conexão Firebird em Rede */}
-          <div className="bg-[#161922] border border-red-500/30 rounded-2xl p-5 shadow-xl space-y-3">
-            <div className="flex items-center justify-between border-b border-[#2b3242] pb-2.5">
-              <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-                <Server size={16} className="text-red-500" /> Banco Firebird em Rede (Alias Oficial)
-              </h3>
-              <span className="px-2 py-0.5 rounded bg-red-600/20 text-red-400 font-mono text-[9px] font-bold uppercase">
-                Porta 3050
-              </span>
+        {/* =========================================================================
+            ABA 1: DADOS CADASTRAIS DA EMPRESA & PIX
+            ========================================================================= */}
+        {activeTab === 'EMPRESA' && (
+          <div className="grid grid-cols-12 gap-4">
+            
+            {/* Formulário de Edição Completa */}
+            <form onSubmit={handleSaveEmpresa} className="col-span-12 lg:col-span-7 bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl space-y-4">
+              
+              <div className="flex items-center justify-between border-b border-[#2b3242] pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-red-600/15 border border-red-500/30 flex items-center justify-center text-red-500">
+                    <Building2 size={17} />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black text-slate-100 uppercase tracking-wider">
+                      Identidade Corporativa & Cabeçalho de Documentos
+                    </h3>
+                    <p className="text-[10px] text-slate-400">
+                      Estes dados são impressos automaticamente em todos os Relatórios, PDFs, Recibos e Cobranças
+                    </p>
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(220,38,38,0.35)]"
+                >
+                  <Save size={14} /> Salvar Dados
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                
+                {/* Razão Social e Nome Fantasia */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
+                      Razão Social (Nome Oficial da Empresa) *
+                    </label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="Ex: Minha Empresa Comercial Ltda"
+                      value={empresaData.razaoSocial}
+                      onChange={e => setEmpresaData({...empresaData, razaoSocial: e.target.value})}
+                      className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-2 text-xs text-slate-100 font-bold focus:outline-none focus:border-red-500" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
+                      Nome Fantasia (Marca Comercial)
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: Gestão Financeira & Cobrança"
+                      value={empresaData.nomeFantasia}
+                      onChange={e => setEmpresaData({...empresaData, nomeFantasia: e.target.value})}
+                      className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-2 text-xs text-slate-100 font-medium focus:outline-none focus:border-red-500" 
+                    />
+                  </div>
+                </div>
+
+                {/* CNPJ e Inscrição Estadual */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
+                      CNPJ *
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder="00.000.000/0001-00"
+                      value={empresaData.cnpj}
+                      onChange={e => setEmpresaData({...empresaData, cnpj: e.target.value})}
+                      className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-red-500" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
+                      Inscrição Estadual (IE)
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder="ISENTO ou 000.000.000.000"
+                      value={empresaData.ie}
+                      onChange={e => setEmpresaData({...empresaData, ie: e.target.value})}
+                      className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-red-500" 
+                    />
+                  </div>
+                </div>
+
+                {/* E-mail e Telefone */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
+                      E-mail do Departamento Financeiro
+                    </label>
+                    <input 
+                      type="email" 
+                      placeholder="financeiro@empresa.com.br"
+                      value={empresaData.email}
+                      onChange={e => setEmpresaData({...empresaData, email: e.target.value})}
+                      className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-red-500" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
+                      Telefone / WhatsApp Comercial
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder="(11) 99999-9999"
+                      value={empresaData.telefone}
+                      onChange={e => setEmpresaData({...empresaData, telefone: e.target.value})}
+                      className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-red-500" 
+                    />
+                  </div>
+                </div>
+
+                {/* Endereço Completo */}
+                <div>
+                  <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
+                    Endereço Completo (Rua, Número, Bairro, Cidade - UF)
+                  </label>
+                  <input 
+                    type="text"
+                    placeholder="Av. Principal, 1000 - Centro, São Paulo - SP"
+                    value={empresaData.endereco}
+                    onChange={e => setEmpresaData({...empresaData, endereco: e.target.value})}
+                    className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-red-500" 
+                  />
+                </div>
+
+                {/* Seção PIX Oficial da Empresa */}
+                <div className="pt-3 border-t border-[#2b3242]">
+                  <h4 className="text-[11px] font-mono font-bold uppercase text-emerald-400 mb-2 flex items-center gap-1.5">
+                    <QrCode size={14} /> Dados Bancários e PIX para Recebimentos
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
+                        Chave PIX Padrão (CNPJ, E-mail ou Telefone)
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: 00.000.000/0001-00 ou financeiro@pix.com"
+                        value={empresaData.chavePix || ''}
+                        onChange={e => setEmpresaData({...empresaData, chavePix: e.target.value})}
+                        className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-2 text-xs text-emerald-300 font-mono focus:outline-none focus:border-emerald-500" 
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
+                        Nome do Favorecido no PIX
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Minha Empresa Comercial Ltda"
+                        value={empresaData.favorecidoPix || ''}
+                        onChange={e => setEmpresaData({...empresaData, favorecidoPix: e.target.value})}
+                        className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500" 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </form>
+
+            {/* Preview ao Vivo do Cabeçalho Impresso */}
+            <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
+              
+              <div className="bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl">
+                <h4 className="text-xs font-black uppercase text-slate-300 flex items-center gap-2 mb-3">
+                  <Eye size={15} className="text-red-500" /> Pré-Visualização no Timbre do Relatório
+                </h4>
+
+                {/* Card Branco Simulando Folha A4 */}
+                <div className="bg-white text-slate-900 rounded-xl p-4 border border-slate-300 shadow-inner font-sans">
+                  <div className="border-b border-slate-900 pb-2 mb-2">
+                    <h2 className="text-sm font-black uppercase tracking-tight text-slate-900">
+                      {empresaData.razaoSocial || 'RAZÃO SOCIAL DA SUA EMPRESA'}
+                    </h2>
+                    <p className="text-[11px] text-slate-600 font-semibold">
+                      {empresaData.nomeFantasia || 'Nome Fantasia / Marca'}
+                    </p>
+                    <div className="text-[9px] text-slate-500 font-mono mt-1 space-x-2">
+                      <span><b>CNPJ:</b> {empresaData.cnpj || '00.000.000/0001-00'}</span>
+                      <span><b>IE:</b> {empresaData.ie || 'ISENTO'}</span>
+                      <span><b>Tel:</b> {empresaData.telefone || '(11) 99999-9999'}</span>
+                    </div>
+                    <p className="text-[9px] text-slate-500 mt-0.5">
+                      {empresaData.endereco || 'Endereço Comercial da Empresa'}
+                    </p>
+                  </div>
+
+                  <div className="p-2 bg-slate-50 border border-slate-200 rounded text-[9px] font-mono">
+                    <p className="font-bold text-slate-900 uppercase">Instruções de Pagamento / PIX:</p>
+                    <p><b>Chave PIX:</b> {empresaData.chavePix || empresaData.cnpj || 'Não informada'}</p>
+                    <p><b>Favorecido:</b> {empresaData.favorecidoPix || empresaData.razaoSocial || 'Sua Empresa'}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-[#11131a] rounded-xl border border-[#2b3242] text-[11px] text-slate-400">
+                  <p className="flex items-center gap-1.5 font-bold text-slate-300 mb-1">
+                    <CheckCircle2 size={14} className="text-emerald-400" /> Sincronização Automática
+                  </p>
+                  <p>
+                    Ao salvar, todas as telas de emissão de relatórios, cobrança por e-mail, WhatsApp e recibos atualizarão imediatamente para o nome configurado acima.
+                  </p>
+                </div>
+
+              </div>
+
             </div>
 
-            <div className="space-y-2 font-mono text-xs">
-              <div className="bg-[#11131a] p-3 rounded-xl border border-[#232938] space-y-1.5">
-                <div className="flex justify-between text-slate-400">
-                  <span>IP do Servidor:</span>
-                  <span className="text-slate-100 font-bold">{firebirdConfig.host}</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Porta TCP:</span>
-                  <span className="text-slate-100 font-bold">{firebirdConfig.port}</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Alias Principal:</span>
-                  <span className="text-red-400 font-bold uppercase">[{firebirdConfig.database}]</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Alias Auxiliar:</span>
-                  <span className="text-amber-400 font-bold uppercase">[{firebirdConfig.aliasAux}]</span>
-                </div>
-              </div>
+          </div>
+        )}
 
-              {/* Bloco de Código da Configuração do Arquivo aliases.conf */}
-              <div className="bg-[#0b0d13] p-3 rounded-xl border border-[#1e2536] text-[10px] space-y-1">
-                <span className="text-slate-500 font-bold flex items-center gap-1">
-                  <Terminal size={12} className="text-red-400" /> Configuração Obrigatória no Servidor (aliases.conf):
+        {/* =========================================================================
+            ABA 2: BANCO FIREBIRD EM REDE
+            ========================================================================= */}
+        {activeTab === 'FIREBIRD' && (
+          <div className="grid grid-cols-12 gap-4">
+            
+            <div className="col-span-12 lg:col-span-6 bg-[#161922] border border-red-500/30 rounded-2xl p-5 shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-[#2b3242] pb-3">
+                <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+                  <Server size={16} className="text-red-500" /> Conexão Firebird em Rede (Alias Oficial)
+                </h3>
+                <span className="px-2 py-0.5 rounded bg-red-600/20 text-red-400 font-mono text-[9px] font-bold uppercase">
+                  DATABASE ALIAS
                 </span>
-                <pre className="text-emerald-400 font-mono leading-tight whitespace-pre-wrap pt-1 select-all">
-{`[MEZZOLD_DB]
-ALIAS=LOCALHOST:c:\\MEZZOLD\\DADOS\\FINANCEIRO.FDB
-AliasCEP=LOCALHOST:HCEP`}
-                </pre>
               </div>
 
-              {/* Resultado do Teste de Latência */}
+              <div className="space-y-2.5 font-mono text-xs">
+                <div className="p-2.5 bg-[#11131a] rounded-xl border border-[#2b3242] flex justify-between items-center">
+                  <span className="text-slate-400">Servidor (Host):</span>
+                  <span className="text-slate-100 font-bold">{firebirdConfig.host}:{firebirdConfig.port}</span>
+                </div>
+                <div className="p-2.5 bg-[#11131a] rounded-xl border border-[#2b3242] flex justify-between items-center">
+                  <span className="text-slate-400">Alias Principal:</span>
+                  <span className="text-emerald-400 font-bold">[{firebirdConfig.database}]</span>
+                </div>
+                <div className="p-2.5 bg-[#11131a] rounded-xl border border-[#2b3242] flex justify-between items-center">
+                  <span className="text-slate-400">Usuário DB:</span>
+                  <span className="text-slate-200">{firebirdConfig.user}</span>
+                </div>
+              </div>
+
               {firebirdTestResult && (
-                <div className={`p-3 rounded-xl border ${
+                <div className={`p-3.5 rounded-xl border text-xs font-mono animate-in fade-in duration-200 ${
                   firebirdTestResult.success 
-                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' 
-                    : 'bg-red-950/40 border-red-500/40 text-red-300'
+                    ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300'
+                    : 'bg-red-950/40 border-red-500/50 text-red-300'
                 }`}>
-                  <div className="flex justify-between font-bold text-[11px] mb-1">
-                    <span>STATUS DE REDE FIREBIRD:</span>
-                    <span>{firebirdTestResult.latencyMs} ms</span>
+                  <div className="flex items-center gap-2 font-bold mb-1">
+                    {firebirdTestResult.success ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                    <span>{firebirdTestResult.message}</span>
                   </div>
-                  <p className="text-[10px]">{firebirdTestResult.message}</p>
+                  <div className="text-[11px] opacity-80 mt-1 space-y-0.5">
+                    <div>Alias Utilizado: <b>{firebirdTestResult.aliasUsed}</b></div>
+                    <div>Tempo de Resposta: <b>{firebirdTestResult.latencyMs}ms</b></div>
+                  </div>
                 </div>
               )}
 
@@ -159,102 +429,56 @@ AliasCEP=LOCALHOST:HCEP`}
                 ) : (
                   <>
                     <Network size={15} />
-                    <span>Testar Conexão Firebird</span>
+                    <span>Testar Conexão com Banco Firebird</span>
                   </>
                 )}
               </button>
             </div>
-          </div>
 
-          {/* Form Dados da Empresa */}
-          <form onSubmit={handleSaveEmpresa} className="bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl space-y-3">
-            <div className="flex items-center justify-between border-b border-[#2b3242] pb-2.5">
-              <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-                <Building2 size={16} className="text-red-500" /> Dados Cadastrais da Empresa
+            {/* Manutenção de Banco */}
+            <div className="col-span-12 lg:col-span-6 bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl space-y-3">
+              <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2 border-b border-[#2b3242] pb-3">
+                <Database size={16} className="text-emerald-400" /> Rotinas de Banco de Dados
               </h3>
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleMaintenance('Reindexação de Índices Firebird')}
+                  className="w-full flex items-center justify-between p-3 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
+                >
+                  <span className="flex items-center gap-2"><RefreshCw size={14} className="text-emerald-400" /> Reindexar Tabelas</span>
+                  <span className="text-[10px] text-slate-500 font-mono">Executar</span>
+                </button>
+
+                <button
+                  onClick={() => handleMaintenance('Diagnóstico de Integridade de Tabelas')}
+                  className="w-full flex items-center justify-between p-3 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
+                >
+                  <span className="flex items-center gap-2"><CheckCircle2 size={14} className="text-blue-400" /> Teste de Integridade de Dados</span>
+                  <span className="text-[10px] text-slate-500 font-mono">Executar</span>
+                </button>
+
+                <button
+                  onClick={() => handleMaintenance('Reciclagem do Pool de Conexões')}
+                  className="w-full flex items-center justify-between p-3 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
+                >
+                  <span className="flex items-center gap-2"><Cpu size={14} className="text-amber-400" /> Reciclar Pool de Conexões</span>
+                  <span className="text-[10px] text-slate-500 font-mono">Executar</span>
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-2.5">
-              <div>
-                <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">Razão Social</label>
-                <input 
-                  type="text" 
-                  value={empresaData.razaoSocial}
-                  onChange={e => setEmpresaData({...empresaData, razaoSocial: e.target.value})}
-                  className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-1.5 text-xs text-slate-100 font-medium focus:outline-none focus:border-red-500" 
-                />
-              </div>
+          </div>
+        )}
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">CNPJ</label>
-                  <input 
-                    type="text" 
-                    value={empresaData.cnpj}
-                    onChange={e => setEmpresaData({...empresaData, cnpj: e.target.value})}
-                    className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-red-500" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">Inscrição Estadual</label>
-                  <input 
-                    type="text" 
-                    value={empresaData.ie}
-                    onChange={e => setEmpresaData({...empresaData, ie: e.target.value})}
-                    className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-red-500" 
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">E-mail Financeiro</label>
-                  <input 
-                    type="email" 
-                    value={empresaData.email}
-                    onChange={e => setEmpresaData({...empresaData, email: e.target.value})}
-                    className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-red-500" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">Telefone / WhatsApp</label>
-                  <input 
-                    type="text" 
-                    value={empresaData.telefone}
-                    onChange={e => setEmpresaData({...empresaData, telefone: e.target.value})}
-                    className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-red-500" 
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">Endereço Principal</label>
-                <textarea 
-                  value={empresaData.endereco}
-                  onChange={e => setEmpresaData({...empresaData, endereco: e.target.value})}
-                  className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-red-500 min-h-[60px] resize-none" 
-                />
-              </div>
-
-              <button 
-                type="submit"
-                className="w-full flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(220,38,38,0.3)] mt-2"
-              >
-                <Save size={14} /> Salvar Alterações Cadastrais
-              </button>
-            </div>
-          </form>
-
-        </div>
-
-        {/* COLUNA DIREITA: USUÁRIOS & AUDITORIA DE SISTEMA */}
-        <div className="col-span-12 lg:col-span-7 flex flex-col gap-4">
-          
-          {/* Gestão de Usuários */}
-          <div className="bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl space-y-3">
-            <div className="flex items-center justify-between border-b border-[#2b3242] pb-2.5">
+        {/* =========================================================================
+            ABA 3: USUÁRIOS & PERMISSÕES
+            ========================================================================= */}
+        {activeTab === 'USUARIOS' && (
+          <div className="bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#2b3242] pb-3">
               <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-                <Shield size={16} className="text-purple-400" /> Usuários & Permissões ({usuarios.length})
+                <Shield size={16} className="text-purple-400" /> Usuários Cadastrados no Sistema ({usuarios.length})
               </h3>
             </div>
 
@@ -263,6 +487,7 @@ AliasCEP=LOCALHOST:HCEP`}
                 <thead className="bg-[#111319] text-slate-400 border-b border-[#2b3242] uppercase text-[10px] font-mono">
                   <tr>
                     <th className="px-4 py-2.5 font-semibold">Usuário</th>
+                    <th className="px-4 py-2.5 font-semibold">Login / Username</th>
                     <th className="px-4 py-2.5 font-semibold">E-mail</th>
                     <th className="px-4 py-2.5 font-semibold">Perfil</th>
                     <th className="px-4 py-2.5 font-semibold text-center">Status</th>
@@ -271,7 +496,11 @@ AliasCEP=LOCALHOST:HCEP`}
                 <tbody className="divide-y divide-[#232836]">
                   {usuarios.map(u => (
                     <tr key={u.id} className="hover:bg-[#1f2432]/70 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-100">{u.nome}</td>
+                      <td className="px-4 py-2.5 font-bold text-slate-100 flex items-center gap-2">
+                        <img src={u.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'} alt={u.nome} className="w-6 h-6 rounded-full object-cover" />
+                        <span>{u.nome}</span>
+                      </td>
+                      <td className="px-4 py-2.5 font-mono text-red-400 font-bold">@{u.username}</td>
                       <td className="px-4 py-2.5 font-mono text-slate-400">{u.email}</td>
                       <td className="px-4 py-2.5">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
@@ -291,48 +520,20 @@ AliasCEP=LOCALHOST:HCEP`}
               </table>
             </div>
           </div>
+        )}
 
-          {/* Manutenção de Banco e Diagnóstico */}
-          <div className="bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl space-y-3">
-            <div className="flex items-center justify-between border-b border-[#2b3242] pb-2.5">
-              <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-                <Database size={16} className="text-emerald-400" /> Manutenção & Pool Firebird
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => handleMaintenance('Reindexação de Índices Firebird')}
-                className="flex items-center justify-center gap-1.5 p-2.5 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
-              >
-                <RefreshCw size={13} className="text-emerald-400" /> Reindexar Firebird
-              </button>
-
-              <button
-                onClick={() => handleMaintenance('Diagnóstico de Integridade de Tabelas')}
-                className="flex items-center justify-center gap-1.5 p-2.5 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
-              >
-                <CheckCircle2 size={13} className="text-blue-400" /> Integridade do Banco
-              </button>
-
-              <button
-                onClick={() => handleMaintenance('Reciclagem do Pool de Conexões')}
-                className="flex items-center justify-center gap-1.5 p-2.5 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
-              >
-                <Cpu size={13} className="text-amber-400" /> Reciclar Pool
-              </button>
-            </div>
-          </div>
-
-          {/* Log de Auditoria em Tempo Real */}
-          <div className="bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl flex-1 flex flex-col min-h-[220px]">
-            <div className="flex items-center justify-between border-b border-[#2b3242] pb-2.5 mb-3">
+        {/* =========================================================================
+            ABA 4: AUDITORIA
+            ========================================================================= */}
+        {activeTab === 'AUDITORIA' && (
+          <div className="bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl flex-1 flex flex-col min-h-[350px]">
+            <div className="flex items-center justify-between border-b border-[#2b3242] pb-3 mb-3">
               <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
                 <History size={16} className="text-blue-400" /> Log de Auditoria em Tempo Real ({auditLogs.length})
               </h3>
             </div>
 
-            <div className="overflow-y-auto border border-[#2b3242] rounded-xl flex-1 max-h-[220px]">
+            <div className="overflow-y-auto border border-[#2b3242] rounded-xl flex-1">
               <table className="w-full text-left text-xs text-slate-300">
                 <thead className="bg-[#111319] text-slate-400 border-b border-[#2b3242] uppercase text-[10px] font-mono sticky top-0">
                   <tr>
@@ -355,8 +556,7 @@ AliasCEP=LOCALHOST:HCEP`}
               </table>
             </div>
           </div>
-
-        </div>
+        )}
 
       </div>
 

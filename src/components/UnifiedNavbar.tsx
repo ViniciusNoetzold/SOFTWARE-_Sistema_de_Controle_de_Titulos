@@ -172,7 +172,7 @@ export function UnifiedNavbar({
   };
 
   return (
-    <div ref={menuRef} className="w-full bg-[#12151e] border-b border-[#252b3b] px-3 py-1.5 flex items-center justify-between shadow-xl relative z-40 select-none">
+    <div ref={menuRef} className="unified-navbar no-print w-full bg-[#12151e] border-b border-[#252b3b] px-3 py-1.5 flex items-center justify-between shadow-xl relative z-40 select-none">
       
       {/* Menu Options Bar */}
       <div className="flex items-center gap-1.5 flex-wrap">

@@ -32,13 +32,15 @@ export interface AuditLog {
 }
 
 export const defaultEmpresaConfig: EmpresaConfig = {
-  razaoSocial: 'Mezzold Studios Finance S/A',
-  nomeFantasia: 'Mezzold Financial',
+  razaoSocial: 'Sua Razão Social Ltda',
+  nomeFantasia: 'Seu Nome Fantasia',
   cnpj: '00.000.000/0001-00',
-  ie: '123.456.789.110',
-  email: 'financeiro@mezzold.com.br',
+  ie: 'ISENTO',
+  email: 'financeiro@empresa.com.br',
   telefone: '(11) 99999-8888',
-  endereco: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP'
+  endereco: 'Av. Principal, 1000 - Centro',
+  chavePix: '00.000.000/0001-00',
+  favorecidoPix: 'Sua Razão Social Ltda'
 };
 
 export const initialUsuarios: Usuario[] = [

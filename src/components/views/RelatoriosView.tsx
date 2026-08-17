@@ -779,7 +779,7 @@ export function RelatoriosView() {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-lg font-black tracking-tight text-slate-900 uppercase">
-                {empresaConfig.razaoSocial || 'MEZZOLD FINANCIAL STUDIO'}
+                {empresaConfig.razaoSocial || 'RAZÃO SOCIAL DA EMPRESA'}
               </h1>
               <p className="text-[10pt] text-slate-600 font-medium">
                 {empresaConfig.nomeFantasia || 'Sistema Integrado de Controle de Títulos & Cobrança'}
@@ -789,7 +789,7 @@ export function RelatoriosView() {
                 <span><b>IE:</b> {empresaConfig.ie || 'ISENTO'}</span>
                 <span><b>Tel:</b> {empresaConfig.telefone || '(11) 99999-9999'}</span>
               </div>
-              <p className="text-[8pt] text-slate-500">{empresaConfig.endereco || 'Avenida Central de Negócios, 1000 - Centro'}</p>
+              <p className="text-[8pt] text-slate-500">{empresaConfig.endereco || 'Endereço da Empresa'}</p>
             </div>
 
             <div className="text-right">
@@ -940,7 +940,7 @@ export function RelatoriosView() {
               <div>
                 <p className="font-bold text-slate-900 uppercase">Instruções para Quitação e Regularização:</p>
                 <p className="text-slate-600">Efetue o pagamento via PIX ou TED utilizando a chave corporativa abaixo e envie o comprovante.</p>
-                <p className="font-mono text-slate-900 mt-1"><b>Chave PIX (CNPJ):</b> {empresaConfig.cnpj || '00.000.000/0001-00'} | <b>Favorecido:</b> {empresaConfig.razaoSocial || 'Mezzold Financial'}</p>
+                <p className="font-mono text-slate-900 mt-1"><b>Chave PIX:</b> {empresaConfig.chavePix || empresaConfig.cnpj || '00.000.000/0001-00'} | <b>Favorecido:</b> {empresaConfig.favorecidoPix || empresaConfig.razaoSocial || 'Sua Empresa'}</p>
               </div>
               <div className="text-right">
                 <span className="text-[10pt] font-black font-mono text-slate-900">Total a Liquidar: R$ {formatCurrency(totalClienteSelSaldo)}</span>
@@ -1144,8 +1144,8 @@ export function RelatoriosView() {
         <div className="mt-8 pt-4 border-t border-slate-300 page-break-inside-avoid">
           <div className="flex justify-between items-end">
             <div className="text-[8pt] text-slate-500 font-mono space-y-1">
-              <p>Documento gerado eletronicamente pelo software Mezzold Financial.</p>
-              <p>Chave de Validação: {Math.random().toString(36).substring(2, 10).toUpperCase()}-{Date.now()}</p>
+              <p>Documento oficial emitido eletronicamente pelo Sistema de Controle Financeiro.</p>
+              <p>Chave de Autenticidade: {Math.random().toString(36).substring(2, 10).toUpperCase()}-{Date.now()}</p>
             </div>
 
             {/* No relatório individual do cliente, mostra campo de assinatura de ambos */}
@@ -1157,13 +1157,13 @@ export function RelatoriosView() {
                 </div>
                 <div className="text-center w-48 border-t border-slate-900 pt-1">
                   <p className="text-[8pt] font-bold text-slate-900">Cedente / Financeiro</p>
-                  <p className="text-[7pt] text-slate-600 truncate">{empresaConfig.razaoSocial || 'Mezzold Financial'}</p>
+                  <p className="text-[7pt] text-slate-600 truncate">{empresaConfig.razaoSocial || empresaConfig.nomeFantasia || 'Cedente'}</p>
                 </div>
               </div>
             ) : (
               <div className="text-center w-64 border-t border-slate-900 pt-1">
                 <p className="text-[8.5pt] font-bold text-slate-900">Responsável Financeiro</p>
-                <p className="text-[7.5pt] text-slate-600">{empresaConfig.razaoSocial || 'Mezzold Financial'}</p>
+                <p className="text-[7.5pt] text-slate-600">{empresaConfig.razaoSocial || empresaConfig.nomeFantasia || 'Responsável Financeiro'}</p>
               </div>
             )}
           </div>
