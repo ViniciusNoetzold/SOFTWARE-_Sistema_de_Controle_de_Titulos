@@ -177,10 +177,10 @@ export function UnifiedNavbar({
   };
 
   return (
-    <div ref={menuRef} className="unified-navbar no-print w-full bg-[#0F131C] border-b border-[#1E2536] px-2 sm:px-4 py-2 flex items-center justify-between shadow-md relative z-40 select-none overflow-x-auto no-scrollbar gap-3">
+    <div ref={menuRef} className="unified-navbar no-print w-full bg-[#0F131C] border-b border-[#1E2536] px-2 sm:px-4 py-2 flex items-center justify-between shadow-md relative z-50 select-none gap-3">
       
       {/* Menu Options Bar */}
-      <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap md:flex-wrap shrink-0 font-sans">
+      <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap shrink-0 font-sans">
         {menuConfig.map((item) => {
           const Icon = item.icon;
           const isOpen = activeMenu === item.id;
