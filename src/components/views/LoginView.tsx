@@ -1,17 +1,19 @@
 import { useState, FormEvent } from 'react';
 import { 
   Lock, User, LogIn, ArrowRight, AlertCircle, ShieldCheck, 
-  UserCheck, UserPlus, Sparkles, Building2
+  UserCheck, UserPlus, Sparkles, Building2, Eye, EyeOff, KeyRound
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
 export function LoginView() {
-  const { login, lastLoggedUser, switchUser, empresaConfig } = useAppContext();
+  const { login, lastLoggedUser, switchUser, empresaConfig, usuarios } = useAppContext();
 
   // Estados de entrada
   const [usernameInput, setUsernameInput] = useState(lastLoggedUser ? lastLoggedUser.username : '');
   const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Se existe último usuário lembrado no dispositivo
@@ -20,6 +22,7 @@ export function LoginView() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setInfoMessage(null);
 
     const targetUser = isRememberedMode ? lastLoggedUser.username : usernameInput;
 
@@ -42,14 +45,19 @@ export function LoginView() {
       if (!res.success) {
         setErrorMessage(res.message);
       }
-    }, 400);
+    }, 300);
   };
 
-  const handleQuickSelectDemo = (username: string, pass: string) => {
+  // Preenche usuário e senha no formulário sem logar direto automaticamente
+  const handleQuickSelectUser = (username: string, pass: string, nome: string) => {
+    // Se estava no modo usuário lembrado, limpa a memória para permitir visualizar os campos
+    if (isRememberedMode) {
+      switchUser();
+    }
     setUsernameInput(username);
     setPasswordInput(pass);
     setErrorMessage(null);
-    login(username, pass);
+    setInfoMessage(`Credenciais de ${nome} preenchidas no formulário. Clique em "Acessar o Sistema".`);
   };
 
   return (
@@ -59,7 +67,7 @@ export function LoginView() {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-md bg-[#141722]/90 border border-[#2b3242] rounded-3xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-xl relative z-10 animate-in zoom-in-95 duration-300">
+      <div className="w-full max-w-md bg-[#141722]/95 border border-[#2b3242] rounded-3xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-xl relative z-10 animate-in zoom-in-95 duration-300">
         
         {/* Cabeçalho da Empresa / Sistema */}
         <div className="text-center mb-8">
@@ -79,6 +87,14 @@ export function LoginView() {
           <div className="mb-5 p-3.5 bg-red-950/50 border border-red-500/40 rounded-2xl flex items-center gap-3 text-red-300 text-xs font-mono animate-in fade-in duration-200">
             <AlertCircle size={18} className="text-red-400 shrink-0" />
             <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Mensagem Informativa do Acesso Rápido */}
+        {infoMessage && (
+          <div className="mb-5 p-3 bg-emerald-950/50 border border-emerald-500/40 rounded-2xl flex items-center gap-2.5 text-emerald-300 text-xs font-mono animate-in fade-in duration-200">
+            <KeyRound size={16} className="text-emerald-400 shrink-0" />
+            <span>{infoMessage}</span>
           </div>
         )}
 
@@ -145,13 +161,21 @@ export function LoginView() {
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={passwordInput}
                 onChange={e => setPasswordInput(e.target.value)}
                 placeholder="••••••••••••"
                 autoFocus={isRememberedMode}
-                className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl pl-10 pr-4 py-3 text-xs font-mono text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-500 transition-colors"
+                className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl pl-10 pr-10 py-3 text-xs font-mono text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-500 transition-colors"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-200 transition-colors p-1"
+                title={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
@@ -172,37 +196,38 @@ export function LoginView() {
           </button>
         </form>
 
-        {/* Atalhos Rápidos de Demonstração */}
+        {/* Atalhos Rápidos Dinâmicos com Preenchimento de Senha */}
         <div className="mt-8 pt-6 border-t border-[#23293a]">
-          <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 uppercase font-bold mb-3">
-            <Sparkles size={12} className="text-amber-400" />
-            <span>Contas Rápidas de Demonstração:</span>
+          <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase font-bold mb-3">
+            <span className="flex items-center gap-1.5">
+              <Sparkles size={12} className="text-amber-400" />
+              <span>Acesso Rápido a Usuários Cadastrados:</span>
+            </span>
+            <span className="text-[9px] text-slate-500">Clique para preencher</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => handleQuickSelectDemo('admin', 'admin123')}
-              className="bg-[#1a1e2c] hover:bg-[#252c40] border border-[#2e374d] text-slate-200 p-2 rounded-xl text-[10px] font-mono text-center transition-all"
-            >
-              <div className="font-bold text-red-400">ADMIN</div>
-              <div className="text-slate-500 text-[9px]">admin123</div>
-            </button>
-
-            <button
-              onClick={() => handleQuickSelectDemo('operador', 'operador123')}
-              className="bg-[#1a1e2c] hover:bg-[#252c40] border border-[#2e374d] text-slate-200 p-2 rounded-xl text-[10px] font-mono text-center transition-all"
-            >
-              <div className="font-bold text-blue-400">OPERADOR</div>
-              <div className="text-slate-500 text-[9px]">operador123</div>
-            </button>
-
-            <button
-              onClick={() => handleQuickSelectDemo('carlos', 'carlos123')}
-              className="bg-[#1a1e2c] hover:bg-[#252c40] border border-[#2e374d] text-slate-200 p-2 rounded-xl text-[10px] font-mono text-center transition-all"
-            >
-              <div className="font-bold text-emerald-400">FINANCEIRO</div>
-              <div className="text-slate-500 text-[9px]">carlos123</div>
-            </button>
+            {usuarios.filter(u => u.ativo).map((u) => (
+              <button
+                key={u.id}
+                type="button"
+                onClick={() => handleQuickSelectUser(u.username, u.senhaHash, u.nome)}
+                className="bg-[#1a1e2c] hover:bg-[#252c40] border border-[#2e374d] hover:border-red-500/50 text-slate-200 p-2 rounded-xl text-[10px] font-mono text-center transition-all flex flex-col items-center gap-1 group"
+                title={`Preencher credenciais de ${u.nome}`}
+              >
+                <span className={`font-bold uppercase tracking-wider ${
+                  u.perfil === 'ADMIN' ? 'text-red-400' : u.perfil === 'FINANCEIRO' ? 'text-emerald-400' : 'text-blue-400'
+                }`}>
+                  {u.username}
+                </span>
+                <span className="text-slate-400 text-[9px] truncate max-w-full font-sans font-semibold">
+                  {u.nome.split(' ')[0]}
+                </span>
+                <span className="text-slate-500 text-[9px] font-mono bg-[#11131a] px-1.5 py-0.5 rounded border border-[#2b3242] group-hover:text-amber-300">
+                  🔑 {u.senhaHash}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 

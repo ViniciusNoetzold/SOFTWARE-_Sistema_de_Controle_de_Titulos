@@ -1,11 +1,19 @@
 import { useState, FormEvent } from 'react';
 import { 
   Users, UserPlus, Shield, CheckCircle2, XCircle, Search, 
-  Key, Mail, UserCheck, ShieldAlert, Edit2, Lock, UserX
+  Key, Mail, UserCheck, ShieldAlert, Edit2, Lock, Eye, EyeOff, KeyRound, Sparkles
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { Usuario, PerfilUsuario } from '../../types';
 import { formatDateBR } from '../../lib/utils';
+
+const PRESET_AVATARS = [
+  { name: 'Vinícius (Executivo)', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' },
+  { name: 'Ana (Operadora)', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80' },
+  { name: 'Carlos (Financeiro)', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' },
+  { name: 'Juliana (Auditoria)', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80' },
+  { name: 'Lucas (Operações)', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80' },
+];
 
 export function UsuariosView() {
   const { usuarios, addUsuario, updateUsuario, toggleUsuarioAtivo, currentUser, showToast } = useAppContext();
@@ -14,6 +22,8 @@ export function UsuariosView() {
   const [filterPerfil, setFilterPerfil] = useState<string>('TODOS');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [showModalPassword, setShowModalPassword] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
 
   // Form local
   const [formData, setFormData] = useState({
@@ -25,28 +35,37 @@ export function UsuariosView() {
     avatarUrl: ''
   });
 
+  const toggleCardPasswordVisibility = (userId: string) => {
+    setVisiblePasswords(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
+
   const handleOpenNewModal = () => {
     setEditingUserId(null);
+    setShowModalPassword(false);
     setFormData({
       nome: '',
       username: '',
       email: '',
       senha: '',
       perfil: 'OPERADOR',
-      avatarUrl: ''
+      avatarUrl: PRESET_AVATARS[0].url
     });
     setIsModalOpen(true);
   };
 
   const handleOpenEditModal = (user: Usuario) => {
     setEditingUserId(user.id);
+    setShowModalPassword(false);
     setFormData({
       nome: user.nome,
       username: user.username,
       email: user.email,
       senha: user.senhaHash,
       perfil: user.perfil,
-      avatarUrl: user.avatarUrl || ''
+      avatarUrl: user.avatarUrl || PRESET_AVATARS[0].url
     });
     setIsModalOpen(true);
   };
@@ -129,7 +148,7 @@ export function UsuariosView() {
           </div>
           <div>
             <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Gestão de Usuários & Permissões</h2>
-            <p className="text-[11px] text-slate-400 font-mono">Controle de acessos, perfis e autenticação segura do sistema.</p>
+            <p className="text-[11px] text-slate-400 font-mono">Edite dados, senhas de acesso e perfis de permissão do sistema.</p>
           </div>
         </div>
 
@@ -173,98 +192,124 @@ export function UsuariosView() {
 
       {/* Grid de Cards de Usuários */}
       <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pr-1">
-        {filteredUsers.map(u => (
-          <div 
-            key={u.id}
-            className={`bg-[#161922] border rounded-2xl p-5 shadow-xl flex flex-col justify-between transition-all ${
-              u.ativo ? 'border-[#2b3242] hover:border-[#3b4458]' : 'border-red-950/60 bg-[#12141c] opacity-75'
-            }`}
-          >
-            <div>
-              {/* Top Bar do Card */}
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={u.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
-                    alt={u.nome}
-                    className="w-12 h-12 rounded-xl object-cover border border-[#2b3242] shrink-0"
-                  />
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
-                      <span>{u.nome}</span>
-                      {currentUser?.id === u.id && (
-                        <span className="bg-emerald-500/20 text-emerald-400 text-[9px] px-1.5 py-0.5 rounded font-mono font-bold">Você</span>
-                      )}
-                    </h3>
-                    <p className="text-[11px] text-slate-400 font-mono">@{u.username}</p>
+        {filteredUsers.map(u => {
+          const isPasswordShown = !!visiblePasswords[u.id];
+
+          return (
+            <div 
+              key={u.id}
+              className={`bg-[#161922] border rounded-2xl p-5 shadow-xl flex flex-col justify-between transition-all ${
+                u.ativo ? 'border-[#2b3242] hover:border-[#3b4458]' : 'border-red-950/60 bg-[#12141c] opacity-75'
+              }`}
+            >
+              <div>
+                {/* Top Bar do Card */}
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={u.avatarUrl || PRESET_AVATARS[0].url}
+                      alt={u.nome}
+                      className="w-12 h-12 rounded-xl object-cover border border-[#2b3242] shrink-0 shadow-md"
+                    />
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                        <span>{u.nome}</span>
+                        {currentUser?.id === u.id && (
+                          <span className="bg-emerald-500/20 text-emerald-400 text-[9px] px-1.5 py-0.5 rounded font-mono font-bold">Você</span>
+                        )}
+                      </h3>
+                      <p className="text-[11px] text-slate-400 font-mono">@{u.username}</p>
+                    </div>
+                  </div>
+
+                  {/* Badge Perfil */}
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                    u.perfil === 'ADMIN' 
+                      ? 'bg-red-600/20 text-red-400 border border-red-500/30'
+                      : u.perfil === 'FINANCEIRO'
+                      ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                  }`}>
+                    {u.perfil}
+                  </span>
+                </div>
+
+                {/* Informações detalhadas */}
+                <div className="space-y-2 font-mono text-xs text-slate-300 bg-[#11131a] p-3 rounded-xl border border-[#232938]">
+                  <div className="flex items-center gap-2 text-slate-400 truncate">
+                    <Mail size={14} className="text-slate-500 shrink-0" />
+                    <span className="truncate">{u.email}</span>
+                  </div>
+
+                  {/* Exibição da Senha Cadastrada com Toggle */}
+                  <div className="flex items-center justify-between text-slate-400 pt-1.5 border-t border-[#1e2433]">
+                    <span className="flex items-center gap-1.5 text-[11px]">
+                      <KeyRound size={13} className="text-amber-400" />
+                      <span>Senha de Acesso:</span>
+                    </span>
+
+                    <div className="flex items-center gap-1">
+                      <span className="text-amber-300 font-mono font-bold text-xs bg-[#1a1f2c] px-2 py-0.5 rounded border border-[#2c3548]">
+                        {isPasswordShown ? u.senhaHash : '••••••••'}
+                      </span>
+                      <button
+                        onClick={() => toggleCardPasswordVisibility(u.id)}
+                        className="text-slate-400 hover:text-slate-200 p-1"
+                        title={isPasswordShown ? 'Ocultar senha' : 'Ver senha'}
+                      >
+                        {isPasswordShown ? <EyeOff size={13} /> : <Eye size={13} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-[#1e2433]">
+                    <span>Cadastrado em:</span>
+                    <span className="text-slate-300 font-bold">{formatDateBR(u.criado_em.split('T')[0])}</span>
                   </div>
                 </div>
-
-                {/* Badge Perfil */}
-                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
-                  u.perfil === 'ADMIN' 
-                    ? 'bg-red-600/20 text-red-400 border border-red-500/30'
-                    : u.perfil === 'FINANCEIRO'
-                    ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                }`}>
-                  {u.perfil}
-                </span>
               </div>
 
-              {/* Informações detalhadas */}
-              <div className="space-y-2 font-mono text-xs text-slate-300 bg-[#11131a] p-3 rounded-xl border border-[#232938]">
-                <div className="flex items-center gap-2 text-slate-400 truncate">
-                  <Mail size={14} className="text-slate-500 shrink-0" />
-                  <span className="truncate">{u.email}</span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-[#1e2433]">
-                  <span>Cadastrado em:</span>
-                  <span className="text-slate-300 font-bold">{formatDateBR(u.criado_em.split('T')[0])}</span>
-                </div>
+              {/* Ações de Gerenciamento */}
+              <div className="mt-4 pt-3 border-t border-[#232938] flex items-center justify-between">
+                
+                {/* Botão de Status Ativo / Inativo */}
+                <button
+                  onClick={() => toggleUsuarioAtivo(u.id)}
+                  disabled={currentUser?.id === u.id}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    u.ativo 
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20' 
+                      : 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20'
+                  }`}
+                >
+                  {u.ativo ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                  <span>{u.ativo ? 'Conta Ativa' : 'Conta Inativa'}</span>
+                </button>
+
+                {/* Botão Editar */}
+                <button
+                  onClick={() => handleOpenEditModal(u)}
+                  className="bg-red-600/15 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 text-xs px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <Edit2 size={13} />
+                  <span>Editar Usuário</span>
+                </button>
+
               </div>
             </div>
-
-            {/* Ações de Gerenciamento */}
-            <div className="mt-4 pt-3 border-t border-[#232938] flex items-center justify-between">
-              
-              {/* Botão de Status Ativo / Inativo */}
-              <button
-                onClick={() => toggleUsuarioAtivo(u.id)}
-                disabled={currentUser?.id === u.id}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  u.ativo 
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20' 
-                    : 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20'
-                }`}
-              >
-                {u.ativo ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-                <span>{u.ativo ? 'Conta Ativa' : 'Conta Inativa'}</span>
-              </button>
-
-              {/* Botão Editar */}
-              <button
-                onClick={() => handleOpenEditModal(u)}
-                className="bg-[#1e2433] hover:bg-[#283146] border border-[#2b3346] text-slate-200 text-xs px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1.5"
-              >
-                <Edit2 size={13} />
-                <span>Editar</span>
-              </button>
-
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Modal de Criação / Edição de Usuário */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#161922] border border-[#2b3242] rounded-3xl p-6 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 text-slate-100">
+          <div className="bg-[#161922] border border-[#2b3242] rounded-3xl p-6 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 text-slate-100 max-h-[90vh] overflow-y-auto">
             
             <div className="flex justify-between items-center border-b border-[#2b3242] pb-4 mb-4">
               <h3 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
                 <UserPlus size={18} className="text-red-500" />
-                <span>{editingUserId ? 'Editar Usuário' : 'Novo Usuário do Sistema'}</span>
+                <span>{editingUserId ? 'Editar Dados do Usuário' : 'Novo Usuário do Sistema'}</span>
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -276,6 +321,30 @@ export function UsuariosView() {
 
             <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
               
+              {/* Seleção Rápida de Avatar Galeria */}
+              <div>
+                <label className="block text-[10px] uppercase text-slate-400 font-bold mb-1.5 flex items-center gap-1">
+                  <Sparkles size={12} className="text-amber-400" />
+                  <span>Escolher Foto de Perfil (Avatar):</span>
+                </label>
+
+                <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                  {PRESET_AVATARS.map((avatar, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, avatarUrl: avatar.url })}
+                      className={`relative w-11 h-11 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                        formData.avatarUrl === avatar.url ? 'border-red-500 scale-105 shadow-[0_0_10px_rgba(220,38,38,0.5)]' : 'border-[#2b3242] opacity-60 hover:opacity-100'
+                      }`}
+                      title={avatar.name}
+                    >
+                      <img src={avatar.url} alt={avatar.name} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-[10px] uppercase text-slate-400 font-bold mb-1">Nome Completo *</label>
                 <input
@@ -283,7 +352,7 @@ export function UsuariosView() {
                   value={formData.nome}
                   onChange={e => setFormData({ ...formData, nome: e.target.value })}
                   placeholder="Ex: Carlos Eduardo de Oliveira"
-                  className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-red-500"
+                  className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-red-500 font-sans"
                 />
               </div>
 
@@ -304,7 +373,7 @@ export function UsuariosView() {
                   <select
                     value={formData.perfil}
                     onChange={e => setFormData({ ...formData, perfil: e.target.value as PerfilUsuario })}
-                    className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-red-500"
+                    className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-red-500 font-bold"
                   >
                     <option value="OPERADOR">OPERADOR</option>
                     <option value="FINANCEIRO">FINANCEIRO</option>
@@ -324,33 +393,35 @@ export function UsuariosView() {
                 />
               </div>
 
+              {/* Campo de Senha com Visualizador Toggle */}
               <div>
-                <label className="block text-[10px] uppercase text-slate-400 font-bold mb-1">Senha de Acesso *</label>
-                <input
-                  type="text"
-                  value={formData.senha}
-                  onChange={e => setFormData({ ...formData, senha: e.target.value })}
-                  placeholder="••••••••••••"
-                  className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-red-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] uppercase text-slate-400 font-bold mb-1">URL da Foto de Perfil (Opcional)</label>
-                <input
-                  type="text"
-                  value={formData.avatarUrl}
-                  onChange={e => setFormData({ ...formData, avatarUrl: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-red-500"
-                />
+                <label className="block text-[10px] uppercase text-slate-400 font-bold mb-1">
+                  Senha de Acesso do Usuário *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showModalPassword ? 'text' : 'password'}
+                    value={formData.senha}
+                    onChange={e => setFormData({ ...formData, senha: e.target.value })}
+                    placeholder="••••••••••••"
+                    className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl pl-3.5 pr-10 py-2.5 text-slate-100 focus:outline-none focus:border-red-500 font-mono font-bold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowModalPassword(!showModalPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-100 p-1"
+                    title={showModalPassword ? 'Ocultar senha' : 'Ver senha'}
+                  >
+                    {showModalPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-3 border-t border-[#2b3242] flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-[#1e2433] hover:bg-[#283146] text-slate-300 rounded-xl transition-colors"
+                  className="px-4 py-2 bg-[#1e2433] hover:bg-[#283146] text-slate-300 rounded-xl transition-colors font-bold"
                 >
                   Cancelar
                 </button>
@@ -358,7 +429,7 @@ export function UsuariosView() {
                   type="submit"
                   className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-md"
                 >
-                  {editingUserId ? 'Salvar Alterações' : 'Cadastrar Usuário'}
+                  {editingUserId ? 'Salvar Alterações do Usuário' : 'Cadastrar Usuário'}
                 </button>
               </div>
 
