@@ -238,18 +238,18 @@ export function CobrancaView() {
     setModalTitulo({ titulo: t, cliente });
   };
 
-  // Disparo via Mailto Client
-  const handleSendEmailClient = () => {
+  // Disparo via Gmail Web (Abre direto a tela de compor do Gmail com tudo preenchido)
+  const handleSendGmail = () => {
     if (!modalTitulo) return;
     const { titulo, cliente } = modalTitulo;
 
     if (!emailDestino || !emailDestino.includes('@')) {
-      showToast('Por favor, insira um e-mail de destino válido.', 'error');
+      showToast('Por favor, insira um e-mail de destino válido.');
       return;
     }
 
-    const mailtoUrl = `mailto:${encodeURIComponent(emailDestino)}?subject=${encodeURIComponent(assuntoEmail)}&body=${encodeURIComponent(corpoEmail)}`;
-    window.open(mailtoUrl, '_blank');
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailDestino)}&su=${encodeURIComponent(assuntoEmail)}&body=${encodeURIComponent(corpoEmail)}`;
+    window.open(gmailUrl, '_blank');
 
     const nowStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     setNotificacoesMap(prev => ({
@@ -257,9 +257,73 @@ export function CobrancaView() {
       [titulo.id]: { tituloId: titulo.id, canal: 'EMAIL', dataHora: nowStr }
     }));
 
-    addLog('Notificação via E-mail', `Disparou e-mail de cobrança para ${cliente?.nome || 'Cliente'} (${emailDestino}) referente ao título N° ${titulo.numero_documento}`);
-    showToast(`Aplicativo de e-mail aberto para enviar cobrança a ${cliente?.nome || 'Cliente'}!`);
+    addLog('Notificação via Gmail', `Abriu rascunho no Gmail para ${cliente?.nome || 'Cliente'} (${emailDestino}) referente ao título N° ${titulo.numero_documento}`);
+    showToast(`Gmail aberto com a cobrança preenchida para ${cliente?.nome || 'Cliente'}!`);
     setModalTitulo(null);
+  };
+
+  // Disparo via Outlook Web
+  const handleSendOutlook = () => {
+    if (!modalTitulo) return;
+    const { titulo, cliente } = modalTitulo;
+
+    if (!emailDestino || !emailDestino.includes('@')) {
+      showToast('Por favor, insira um e-mail de destino válido.');
+      return;
+    }
+
+    const outlookUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(emailDestino)}&subject=${encodeURIComponent(assuntoEmail)}&body=${encodeURIComponent(corpoEmail)}`;
+    window.open(outlookUrl, '_blank');
+
+    const nowStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    setNotificacoesMap(prev => ({
+      ...prev,
+      [titulo.id]: { tituloId: titulo.id, canal: 'EMAIL', dataHora: nowStr }
+    }));
+
+    addLog('Notificação via Outlook Web', `Abriu rascunho no Outlook Web para ${cliente?.nome || 'Cliente'} (${emailDestino})`);
+    showToast(`Outlook aberto com a cobrança preenchida!`);
+    setModalTitulo(null);
+  };
+
+  // Disparo via Aplicativo Padrão de E-mail (Sem abrir aba em branco)
+  const handleSendEmailClient = () => {
+    if (!modalTitulo) return;
+    const { titulo, cliente } = modalTitulo;
+
+    if (!emailDestino || !emailDestino.includes('@')) {
+      showToast('Por favor, insira um e-mail de destino válido.');
+      return;
+    }
+
+    const mailtoUrl = `mailto:${encodeURIComponent(emailDestino)}?subject=${encodeURIComponent(assuntoEmail)}&body=${encodeURIComponent(corpoEmail)}`;
+    
+    // Dispara mailto sem abrir aba em branco
+    const link = document.createElement('a');
+    link.href = mailtoUrl;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 100);
+
+    const nowStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    setNotificacoesMap(prev => ({
+      ...prev,
+      [titulo.id]: { tituloId: titulo.id, canal: 'EMAIL', dataHora: nowStr }
+    }));
+
+    addLog('Notificação via E-mail (App)', `Disparou aplicativo de e-mail para ${cliente?.nome || 'Cliente'} (${emailDestino})`);
+    showToast(`Aplicativo de e-mail acionado com sucesso!`);
+    setModalTitulo(null);
+  };
+
+  // Copiar Texto Completo do E-mail
+  const handleCopyEmailText = () => {
+    const fullText = `Assunto: ${assuntoEmail}\n\n${corpoEmail}`;
+    navigator.clipboard.writeText(fullText);
+    showToast('Texto da notificação copiado para a área de transferência!');
   };
 
   // Disparo via WhatsApp Web
@@ -875,8 +939,18 @@ export function CobrancaView() {
                 Cancelar
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
                 
+                {/* Botão Copiar Texto */}
+                <button
+                  onClick={handleCopyEmailText}
+                  disabled={isSending}
+                  className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-[#1e2434] hover:bg-[#283248] border border-[#2e374d] rounded-xl transition-all"
+                  title="Copiar texto completo para a área de transferência"
+                >
+                  <Copy size={13} /> Copiar Texto
+                </button>
+
                 {/* Botão WhatsApp */}
                 <button
                   onClick={handleSendWhatsapp}
@@ -887,29 +961,40 @@ export function CobrancaView() {
                   <MessageSquare size={14} /> WhatsApp
                 </button>
 
-                {/* Botão Disparar E-mail Real (mailto) */}
+                {/* Botão Abrir no Gmail Web */}
                 <button
-                  onClick={handleSendEmailClient}
+                  onClick={handleSendGmail}
                   disabled={isSending}
-                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] disabled:opacity-50"
-                  title="Abrir leitor de e-mail padrão preenchido"
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-500 rounded-xl transition-all shadow-[0_0_15px_rgba(220,38,38,0.35)] disabled:opacity-50"
+                  title="Abrir diretamente na tela de compor do Gmail"
                 >
-                  <Mail size={14} /> Enviar via E-mail
+                  <Mail size={14} /> Abrir no Gmail
+                </button>
+
+                {/* Botão Abrir no Outlook Web */}
+                <button
+                  onClick={handleSendOutlook}
+                  disabled={isSending}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-sky-200 bg-sky-950/70 hover:bg-sky-600 hover:text-white border border-sky-500/40 rounded-xl transition-all disabled:opacity-50"
+                  title="Abrir no Outlook Web"
+                >
+                  <Mail size={14} /> Outlook Web
                 </button>
 
                 {/* Botão Confirmar Envio e Logar no Sistema */}
                 <button
                   onClick={handleConfirmarEnvioNotificacao}
                   disabled={isSending}
-                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-500 rounded-xl transition-all shadow-[0_0_15px_rgba(220,38,38,0.4)] disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all shadow-sm disabled:opacity-50"
+                  title="Registrar envio de notificação no histórico"
                 >
                   {isSending ? (
                     <>
-                      <Loader2 size={14} className="animate-spin" /> Enviando...
+                      <Loader2 size={14} className="animate-spin" /> Registrando...
                     </>
                   ) : (
                     <>
-                      <Send size={14} /> Confirmar Notificação
+                      <CheckCircle2 size={14} /> Confirmar Notificação
                     </>
                   )}
                 </button>
