@@ -1,1 +1,110 @@
 @import "tailwindcss";
+
+/* Ocultar barra de rolagem horizontal da navbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom Scrollbar Escura para todo o app (impede a barra branca do navegador) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111319;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2b3242;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ef4444;
+}
+
+/* ==========================================================================
+   CSS DE IMPRESSÃO (@media print) PARA RECIBOS E RELATÓRIOS EM A4
+   ========================================================================== */
+@media print {
+    /* 1. Esconde TUDO que for interface de usuário e controles da tela */
+    header, 
+    nav, 
+    footer, 
+    .barra-lateral, 
+    .botoes-acao, 
+    button,
+    .no-print,
+    .window-frame-header,
+    .unified-navbar,
+    .status-bar {
+        display: none !important;
+    }
+
+    /* 2. Remove o fundo escuro do body e margens do sistema */
+    html, body, main, #root {
+        background-color: white !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        color: black !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Oculta os fundos pretos/escuros com blur dos modais */
+    .fixed, .absolute {
+        position: static !important;
+    }
+    
+    .bg-black\/80, .bg-zinc-950\/70, .backdrop-blur-md, .backdrop-blur-sm, .modal-backdrop {
+        display: none !important;
+    }
+
+    /* 3. Tira o estilo de "Modal" e ajusta para ocupação total da folha A4 */
+    .modal-recibo, .printable-area {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        border: none !important;
+        box-shadow: none !important;
+        transform: none !important;
+        margin: 0 !important;
+        padding: 1.5cm 2cm !important; /* Margem padrão de folha A4 */
+        background: white !important;
+        color: black !important;
+        display: block !important;
+    }
+
+    /* Garante contraste perfeito para impressão */
+    .modal-recibo *, .printable-area * {
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+        background-color: transparent !important;
+    }
+
+    /* Preserva cores de destaque do Recibo (Destaque do Valor Verde) */
+    .modal-recibo .print-green-text,
+    .printable-area .print-green-text {
+        color: #059669 !important;
+    }
+
+    .modal-recibo .print-green-box,
+    .printable-area .print-green-box {
+        background-color: #f0fdf4 !important;
+        border: 1px solid #bbf7d0 !important;
+    }
+
+    /* 4. Configuração de Página A4 Retrato */
+    @page {
+        size: A4 portrait;
+        margin: 0; 
+    }
+}

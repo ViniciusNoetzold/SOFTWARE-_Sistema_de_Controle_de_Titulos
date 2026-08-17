@@ -1,10 +1,17 @@
-import { ReactNode } from 'react';
+import { useState, ReactNode } from 'react';
 import { X } from 'lucide-react';
 
-const RadioOption = ({ label, name, defaultChecked }: { label: string, name: string, defaultChecked?: boolean }) => (
+const RadioOption = ({ label, name, value, checked, onChange }: { label: string, name: string, value: string, checked: boolean, onChange: (val: string) => void }) => (
   <label className="flex items-center gap-2.5 cursor-pointer group">
     <div className="relative flex items-center justify-center w-4 h-4">
-      <input type="radio" name={name} defaultChecked={defaultChecked} className="peer sr-only" />
+      <input 
+        type="radio" 
+        name={name} 
+        value={value}
+        checked={checked}
+        onChange={() => onChange(value)}
+        className="peer sr-only" 
+      />
       <div className="w-4 h-4 rounded-full border border-zinc-700 bg-zinc-950 peer-checked:border-red-500 peer-checked:bg-red-500 transition-all"></div>
       <div className="absolute w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100 transition-opacity"></div>
     </div>
@@ -16,16 +23,38 @@ const Label = ({ children }: { children: ReactNode }) => (
   <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">{children}</h3>
 );
 
-const Input = ({ defaultValue, className = '' }: { defaultValue?: string, className?: string }) => (
-  <input 
-    type="text" 
-    defaultValue={defaultValue}
-    className={`bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all placeholder:text-zinc-700 ${className}`} 
-  />
-);
+interface ReportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onGenerateReport?: (filterOptions: any) => void;
+}
 
-export function ReportModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+export function ReportModal({ isOpen, onClose, onGenerateReport }: ReportModalProps) {
+  const [dadosTitulos, setDadosTitulos] = useState('vencimento');
+  const [desagio, setDesagio] = useState('0');
+  const [condicaoData, setCondicaoData] = useState('Igual a');
+  const [dataInicio, setDataInicio] = useState('01/01/2026');
+  const [dataFim, setDataFim] = useState('14/08/2026');
+  const [tipo, setTipo] = useState('Ambos');
+  const [destino, setDestino] = useState('Vídeo');
+
   if (!isOpen) return null;
+
+  const handleOk = () => {
+    if (onGenerateReport) {
+      onGenerateReport({
+        dadosTitulos,
+        desagio: parseFloat(desagio) || 0,
+        condicaoData,
+        dataInicio,
+        dataFim,
+        tipo,
+        destino,
+      });
+    } else {
+      onClose();
+    }
+  };
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
@@ -38,7 +67,7 @@ export function ReportModal({ isOpen, onClose }: { isOpen: boolean, onClose: () 
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-zinc-800/80 flex items-center justify-between flex-shrink-0">
           <h2 className="text-sm font-medium text-zinc-100 tracking-wide">
-            Relatório de títulos acumulativo
+            Relatório de Títulos Acumulativo
           </h2>
           <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors focus:outline-none bg-zinc-800/50 hover:bg-zinc-700/50 p-1.5 rounded-md">
             <X size={16} strokeWidth={1.5} />
@@ -53,14 +82,19 @@ export function ReportModal({ isOpen, onClose }: { isOpen: boolean, onClose: () 
             <div className="col-span-8">
               <Label>Dados dos Títulos</Label>
               <div className="flex items-center gap-8 bg-zinc-950/40 p-3.5 rounded-lg border border-zinc-800/50 h-[42px]">
-                <RadioOption name="vencimento" label="Vencimento" />
-                <RadioOption name="vencimento" label="Vcto. Projetado" defaultChecked />
+                <RadioOption name="vencimento" value="vencimento" label="Vencimento" checked={dadosTitulos === 'vencimento'} onChange={setDadosTitulos} />
+                <RadioOption name="vencimento" value="vcto_projetado" label="Vcto. Projetado" checked={dadosTitulos === 'vcto_projetado'} onChange={setDadosTitulos} />
               </div>
             </div>
             <div className="col-span-4">
               <Label>Taxa Deságio</Label>
               <div className="relative">
-                <Input defaultValue="0" className="w-full text-right pr-8 font-mono h-[42px]" />
+                <input 
+                  type="text" 
+                  value={desagio}
+                  onChange={e => setDesagio(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all font-mono h-[42px] text-right pr-8" 
+                />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">%</span>
               </div>
             </div>
@@ -72,11 +106,15 @@ export function ReportModal({ isOpen, onClose }: { isOpen: boolean, onClose: () 
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-4">
                 <div className="relative">
-                  <select className="w-full h-[42px] appearance-none bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all cursor-pointer">
-                    <option>Igual a</option>
-                    <option>Entre</option>
-                    <option>Maior que</option>
-                    <option>Menor que</option>
+                  <select 
+                    value={condicaoData}
+                    onChange={e => setCondicaoData(e.target.value)}
+                    className="w-full h-[42px] appearance-none bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all cursor-pointer"
+                  >
+                    <option value="Igual a">Igual a</option>
+                    <option value="Entre">Entre</option>
+                    <option value="Maior que">Maior que</option>
+                    <option value="Menor que">Menor que</option>
                   </select>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -84,10 +122,20 @@ export function ReportModal({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 </div>
               </div>
               <div className="col-span-4">
-                <Input defaultValue="01/01/2026" className="w-full font-mono text-center tracking-wider h-[42px]" />
+                <input 
+                  type="text"
+                  value={dataInicio}
+                  onChange={e => setDataInicio(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all font-mono text-center tracking-wider h-[42px]" 
+                />
               </div>
               <div className="col-span-4">
-                <Input defaultValue="14/08/2026" className="w-full font-mono text-center tracking-wider h-[42px]" />
+                <input 
+                  type="text"
+                  value={dataFim}
+                  onChange={e => setDataFim(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all font-mono text-center tracking-wider h-[42px]" 
+                />
               </div>
             </div>
           </div>
@@ -95,18 +143,18 @@ export function ReportModal({ isOpen, onClose }: { isOpen: boolean, onClose: () 
           {/* Row 3: Tipo e Destino */}
           <div className="grid grid-cols-2 gap-8">
             <div>
-              <Label>Tipo</Label>
+              <Label>Tipo de Título</Label>
               <div className="flex flex-col gap-4 bg-zinc-950/40 p-4 rounded-lg border border-zinc-800/50">
-                <RadioOption name="tipo" label="Dinheiro" />
-                <RadioOption name="tipo" label="Cheque" />
-                <RadioOption name="tipo" label="Ambos" defaultChecked />
+                <RadioOption name="tipo" value="Dinheiro" label="Contas a Receber (Clientes)" checked={tipo === 'Dinheiro'} onChange={setTipo} />
+                <RadioOption name="tipo" value="Cheque" label="Contas a Pagar (Fornecedores)" checked={tipo === 'Cheque'} onChange={setTipo} />
+                <RadioOption name="tipo" value="Ambos" label="Ambos os Tipos" checked={tipo === 'Ambos'} onChange={setTipo} />
               </div>
             </div>
             <div>
-              <Label>Destino</Label>
-              <div className="flex flex-col gap-4 bg-zinc-950/40 p-4 rounded-lg border border-zinc-800/50 h-[116px]">
-                <RadioOption name="destino" label="Vídeo" />
-                <RadioOption name="destino" label="Impressora" defaultChecked />
+              <Label>Destino de Saída</Label>
+              <div className="flex flex-col gap-4 bg-zinc-950/40 p-4 rounded-lg border border-zinc-800/50 h-[132px]">
+                <RadioOption name="destino" value="Vídeo" label="Visualizar na Tela (Vídeo)" checked={destino === 'Vídeo'} onChange={setDestino} />
+                <RadioOption name="destino" value="Impressora" label="Impressora / PDF" checked={destino === 'Impressora'} onChange={setDestino} />
               </div>
             </div>
           </div>
@@ -123,8 +171,8 @@ export function ReportModal({ isOpen, onClose }: { isOpen: boolean, onClose: () 
             <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-zinc-300 bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700/50 rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-zinc-600">
               Cancelar
             </button>
-            <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-md transition-all shadow-[0_0_15px_rgba(220,38,38,0.2)] focus:outline-none focus:ring-2 focus:ring-red-500/50">
-              OK
+            <button onClick={handleOk} className="px-5 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-md transition-all shadow-[0_0_15px_rgba(220,38,38,0.2)] focus:outline-none focus:ring-2 focus:ring-red-500/50">
+              OK - Gerar Relatório
             </button>
           </div>
         </div>

@@ -44,3 +44,12 @@ export function formatDateBR(dateString: string): string {
   if (!day) return dateString; // fallback
   return `${day}/${month}/${year}`;
 }
+
+export function isTituloVencido(titulo: Titulo): boolean {
+  if (titulo.status === 'PAGO') return false;
+  if (titulo.status === 'VENCIDO') return true;
+  const venc = new Date(titulo.data_vencimento);
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  return venc < hoje;
+}

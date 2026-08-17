@@ -2,14 +2,38 @@ export type TipoEntidade = 'CLIENTE' | 'FORNECEDOR';
 export type TipoTitulo = 'PAGAR' | 'RECEBER';
 export type StatusTitulo = 'EM_ABERTO' | 'PAGO' | 'VENCIDO' | 'RENEGOCIADO';
 export type TipoMovimentacao = 'BAIXA_TOTAL' | 'BAIXA_PARCIAL' | 'ESTORNO';
+export type TipoPessoa = 'PF' | 'PJ';
+
+export interface EmpresaConfig {
+  razaoSocial: string;
+  nomeFantasia: string;
+  cnpj: string;
+  ie: string;
+  email: string;
+  telefone: string;
+  endereco: string;
+}
 
 export interface Entidade {
   id: string;
-  nome: string;
-  documento: string;
+  nome: string; // Nome Completo (PF) ou Razão Social (PJ)
+  documento: string; // CPF ou CNPJ
+  tipo_pessoa?: TipoPessoa;
   tipo_entidade: TipoEntidade;
   email: string;
   telefone: string;
+  
+  // Endereço completo
+  cep?: string;
+  rua?: string;
+  numero?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+
+  // Outros dados relevantes
+  ie_rg?: string;
+  observacoes?: string;
 }
 
 export interface Titulo {

@@ -1,74 +1,141 @@
-import { useState } from 'react';
-import { CreditCard, Plus, CheckCircle } from 'lucide-react';
-import { mockTitulos, mockEntidades } from '../../lib/mockData';
+import { useState, FormEvent } from 'react';
+import { Plus, Search } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
 import { formatCurrency, formatDateBR, calcularSaldoDevedor } from '../../lib/utils';
-import { Titulo } from '../../types';
 
 export function ContasPagarView() {
-  const [titulos, setTitulos] = useState<Titulo[]>(
-    mockTitulos.filter(t => t.tipo_titulo === 'PAGAR')
-  );
+  const { titulos, entidades, addTitulo, liquidarTitulo } = useAppContext();
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleBaixa = (id: string) => {
-    setTitulos(prev => prev.map(t => {
-      if (t.id === id) {
-        return { ...t, status: 'PAGO', valor_pago: t.valor_original, saldo_devedor: 0 };
-      }
-      return t;
-    }));
+  // Form local
+  const [idEntidade, setIdEntidade] = useState('');
+  const [centroCusto, setCentroCusto] = useState('TI e Infraestrutura');
+  const [numeroDocumento, setNumeroDocumento] = useState('');
+  const [valor, setValor] = useState('');
+  const [vencimento, setVencimento] = useState('');
+
+  const contasPagar = titulos.filter(t => t.tipo_titulo === 'PAGAR');
+
+  const filtered = contasPagar.filter(t => {
+    const ent = entidades.find(e => e.id === t.id_entidade);
+    return (
+      t.numero_documento.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (ent && ent.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  });
+
+  const handleCreate = (e: FormEvent) => {
+    e.preventDefault();
+    if (!idEntidade || !numeroDocumento || !valor || !vencimento) {
+      alert('Preencha os campos do formulário para gravar.');
+      return;
+    }
+    const valNum = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
+    if (isNaN(valNum) || valNum <= 0) return;
+
+    addTitulo({
+      id_entidade: idEntidade,
+      tipo_titulo: 'PAGAR',
+      numero_documento: numeroDocumento,
+      valor_original: valNum,
+      data_vencimento: vencimento,
+      centro_custo: centroCusto,
+    });
+
+    setNumeroDocumento('');
+    setValor('');
+    setVencimento('');
   };
 
   return (
-    <div className="w-full h-full p-6 flex flex-col gap-6 animate-in fade-in duration-300 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-100 tracking-tight flex items-center gap-2">
-            <CreditCard size={24} className="text-rose-500" />
-            Contas a Pagar
-          </h1>
-          <p className="text-sm text-zinc-400 mt-1">Gestão de obrigações, pagamentos e fornecedores.</p>
+    <div className="w-full h-full flex flex-col gap-4 animate-in fade-in duration-300">
+      {/* Top Search Bar */}
+      <div className="flex items-center justify-between bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3 shadow-md">
+        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Novo Lançamento Rápido</h3>
+        <div className="relative w-64">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Buscar doc ou fornecedor..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-md pl-9 pr-4 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-red-500/50"
+          />
         </div>
       </div>
 
-      {/* Formulário de Cadastro Simulado */}
-      <div className="bg-zinc-900/80 border border-zinc-800/80 rounded-xl p-5 shadow-xl">
-        <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Novo Título a Pagar</h3>
-        <div className="grid grid-cols-12 gap-4 items-end">
+      {/* Formulário de Cadastro Rápido */}
+      <form onSubmit={handleCreate} className="bg-zinc-900/80 border border-zinc-800/80 rounded-xl p-4 shadow-xl">
+        <div className="grid grid-cols-12 gap-3 items-end">
           <div className="col-span-3">
-            <label className="block text-xs text-zinc-500 mb-1">Fornecedor</label>
-            <select className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 transition-all appearance-none cursor-pointer">
-              {mockEntidades.filter(e => e.tipo_entidade === 'FORNECEDOR').map(c => (
+            <label className="block text-[11px] text-zinc-500 mb-1 font-medium">Fornecedor *</label>
+            <select 
+              value={idEntidade}
+              onChange={e => setIdEntidade(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-red-500/50 transition-all cursor-pointer"
+              required
+            >
+              <option value="">Selecione o fornecedor...</option>
+              {entidades.map(c => (
                 <option key={c.id} value={c.id}>{c.nome}</option>
               ))}
             </select>
           </div>
           <div className="col-span-2">
-            <label className="block text-xs text-zinc-500 mb-1">Centro de Custo</label>
-            <select className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 transition-all appearance-none cursor-pointer">
-              <option>TI e Infraestrutura</option>
-              <option>Administrativo</option>
-              <option>Operacional</option>
+            <label className="block text-[11px] text-zinc-500 mb-1 font-medium">Centro de Custo</label>
+            <select 
+              value={centroCusto}
+              onChange={e => setCentroCusto(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-red-500/50 transition-all cursor-pointer"
+            >
+              <option value="TI e Infraestrutura">TI e Infraestrutura</option>
+              <option value="Administrativo">Administrativo</option>
+              <option value="Operacional">Operacional</option>
             </select>
           </div>
           <div className="col-span-2">
-            <label className="block text-xs text-zinc-500 mb-1">Nº Documento</label>
-            <input type="text" className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 transition-all font-mono" placeholder="FAT-000" />
+            <label className="block text-[11px] text-zinc-500 mb-1 font-medium">Nº Documento *</label>
+            <input 
+              type="text" 
+              value={numeroDocumento}
+              onChange={e => setNumeroDocumento(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-red-500/50 transition-all font-mono" 
+              placeholder="FAT-000" 
+              required
+            />
           </div>
           <div className="col-span-2">
-            <label className="block text-xs text-zinc-500 mb-1">Valor (R$)</label>
-            <input type="text" className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 transition-all font-mono text-right" placeholder="0,00" />
+            <label className="block text-[11px] text-zinc-500 mb-1 font-medium">Valor (R$) *</label>
+            <input 
+              type="text" 
+              value={valor}
+              onChange={e => setValor(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-red-500/50 transition-all font-mono text-right" 
+              placeholder="0,00" 
+              required
+            />
           </div>
           <div className="col-span-2">
-            <label className="block text-xs text-zinc-500 mb-1">Vencimento</label>
-            <input type="date" className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-400 focus:outline-none focus:border-red-500/50 transition-all" />
+            <label className="block text-[11px] text-zinc-500 mb-1 font-medium">Vencimento *</label>
+            <input 
+              type="date" 
+              value={vencimento}
+              onChange={e => setVencimento(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-400 focus:outline-none focus:border-red-500/50 transition-all" 
+              required
+            />
           </div>
           <div className="col-span-1">
-            <button className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white px-2 py-2 rounded-md text-sm font-medium transition-all shadow-[0_0_15px_rgba(37,99,235,0.2)] h-[38px]" title="Gravar">
-              <Plus size={16} />
+            <button 
+              type="submit"
+              className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white px-2 py-1.5 rounded-md text-xs font-medium transition-all shadow-[0_0_15px_rgba(220,38,38,0.2)] h-[34px]" 
+              title="Gravar Título"
+            >
+              <Plus size={15} />
             </button>
           </div>
         </div>
-      </div>
+      </form>
 
       {/* Tabela */}
       <div className="bg-zinc-900/80 border border-zinc-800/80 rounded-xl overflow-hidden flex-1 flex flex-col shadow-xl">
@@ -86,24 +153,31 @@ export function ContasPagarView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/50">
-              {titulos.map((t) => {
-                const fornecedor = mockEntidades.find(e => e.id === t.id_entidade);
+              {filtered.map((t) => {
+                const fornecedor = entidades.find(e => e.id === t.id_entidade);
                 return (
                   <tr key={t.id} className="hover:bg-zinc-800/30 transition-colors group">
                     <td className="px-5 py-3 font-mono text-zinc-300">{t.numero_documento}</td>
-                    <td className="px-5 py-3 font-medium text-zinc-200">{fornecedor?.nome}</td>
-                    <td className="px-5 py-3 text-zinc-400">{t.centro_custo}</td>
+                    <td className="px-5 py-3 font-medium text-zinc-200">{fornecedor?.nome || 'Fornecedor Padrão'}</td>
+                    <td className="px-5 py-3 text-zinc-400">{t.centro_custo || 'Geral'}</td>
                     <td className="px-5 py-3 font-mono">{formatDateBR(t.data_vencimento)}</td>
                     <td className="px-5 py-3 font-mono text-right text-zinc-200">{formatCurrency(calcularSaldoDevedor(t))}</td>
                     <td className="px-5 py-3 text-center">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${t.status === 'EM_ABERTO' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : t.status === 'PAGO' ? 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${
+                        t.status === 'PAGO' ? 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20' : 
+                        'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                      }`}>
                         {t.status}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-center">
                       {t.status !== 'PAGO' && (
                         <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleBaixa(t.id)} className="px-3 py-1 bg-zinc-500/10 text-zinc-500 hover:bg-zinc-500 hover:text-white rounded transition-colors text-[11px] font-semibold tracking-wide uppercase" title="Liquidar Título">
+                          <button 
+                            onClick={() => liquidarTitulo(t.id, 'TOTAL')} 
+                            className="px-3 py-1 bg-red-600/10 text-red-400 hover:bg-red-600 hover:text-white rounded transition-colors text-[11px] font-semibold tracking-wide uppercase" 
+                            title="Liquidar Título"
+                          >
                             Liquidar
                           </button>
                         </div>
@@ -112,6 +186,11 @@ export function ContasPagarView() {
                   </tr>
                 );
               })}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">Nenhum título a pagar encontrado.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
