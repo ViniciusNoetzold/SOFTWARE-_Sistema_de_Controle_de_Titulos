@@ -377,26 +377,30 @@ export function SistemaView() {
         {activeTab === 'FIREBIRD' && (
           <div className="grid grid-cols-12 gap-4">
             
-            <div className="col-span-12 lg:col-span-6 bg-[#161922] border border-red-500/30 rounded-2xl p-5 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-[#2b3242] pb-3">
+            <div className="col-span-12 lg:col-span-6 bg-[#121620] border border-[#222B3D] rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-[#1E2536] pb-3">
                 <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-                  <Server size={16} className="text-red-500" /> Conexão Firebird em Rede (Alias Oficial)
+                  <Server size={16} className="text-blue-500" /> Conexão Firebird em Rede (Alias Oficial)
                 </h3>
-                <span className="px-2 py-0.5 rounded bg-red-600/20 text-red-400 font-mono text-[9px] font-bold uppercase">
-                  DATABASE ALIAS
+                <span className="px-2 py-0.5 rounded bg-blue-600/20 text-blue-400 font-mono text-[9px] font-bold uppercase">
+                  ALIAS [HANSEN]
                 </span>
               </div>
 
               <div className="space-y-2.5 font-mono text-xs">
-                <div className="p-2.5 bg-[#11131a] rounded-xl border border-[#2b3242] flex justify-between items-center">
+                <div className="p-2.5 bg-[#0E1118] rounded-xl border border-[#1E2536] flex justify-between items-center">
                   <span className="text-slate-400">Servidor (Host):</span>
                   <span className="text-slate-100 font-bold">{firebirdConfig.host}:{firebirdConfig.port}</span>
                 </div>
-                <div className="p-2.5 bg-[#11131a] rounded-xl border border-[#2b3242] flex justify-between items-center">
+                <div className="p-2.5 bg-[#0E1118] rounded-xl border border-[#1E2536] flex justify-between items-center">
                   <span className="text-slate-400">Alias Principal:</span>
-                  <span className="text-emerald-400 font-bold">[{firebirdConfig.database}]</span>
+                  <span className="text-blue-400 font-bold">[{firebirdConfig.database}]</span>
                 </div>
-                <div className="p-2.5 bg-[#11131a] rounded-xl border border-[#2b3242] flex justify-between items-center">
+                <div className="p-2.5 bg-[#0E1118] rounded-xl border border-[#1E2536] flex justify-between items-center">
+                  <span className="text-slate-400">Caminho do Banco:</span>
+                  <span className="text-slate-300 font-mono text-[11px]">C:\Mezzold\dados\ESTOQUE.FDB</span>
+                </div>
+                <div className="p-2.5 bg-[#0E1118] rounded-xl border border-[#1E2536] flex justify-between items-center">
                   <span className="text-slate-400">Usuário DB:</span>
                   <span className="text-slate-200">{firebirdConfig.user}</span>
                 </div>
@@ -406,7 +410,7 @@ export function SistemaView() {
                 <div className={`p-3.5 rounded-xl border text-xs font-mono animate-in fade-in duration-200 ${
                   firebirdTestResult.success 
                     ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300'
-                    : 'bg-red-950/40 border-red-500/50 text-red-300'
+                    : 'bg-rose-950/40 border-rose-500/50 text-rose-300'
                 }`}>
                   <div className="flex items-center gap-2 font-bold mb-1">
                     {firebirdTestResult.success ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
@@ -422,7 +426,7 @@ export function SistemaView() {
               <button
                 onClick={handleTestFirebird}
                 disabled={isTestingFirebird}
-                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(220,38,38,0.3)]"
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm"
               >
                 {isTestingFirebird ? (
                   <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -16,9 +16,9 @@ export interface FirebirdConnectionConfig {
 export function getFirebirdConfig(): FirebirdConnectionConfig {
   const env = (import.meta as any).env || {};
   return {
-    host: env.VITE_FIREBIRD_HOST || '192.168.1.10',
+    host: env.VITE_FIREBIRD_HOST || 'LOCALHOST',
     port: parseInt(env.VITE_FIREBIRD_PORT || '3050'),
-    database: env.VITE_FIREBIRD_DATABASE || 'MEZZOLD_DB',
+    database: env.VITE_FIREBIRD_DATABASE || 'HANSEN',
     aliasAux: env.VITE_FIREBIRD_ALIAS_AUX || 'AliasCEP',
     user: env.VITE_FIREBIRD_USER || 'SYSDBA',
     password: env.VITE_FIREBIRD_PASSWORD || 'masterkey',
