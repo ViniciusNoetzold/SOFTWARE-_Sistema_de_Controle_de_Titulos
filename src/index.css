@@ -171,32 +171,206 @@ code, kbd, samp, pre, .font-mono {
   font-weight: 500;
 }
 
-/* Ocultar barra de rolagem horizontal */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Custom Scrollbar Sofisticada em Slate Dark */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* ==========================================================================
+   MAPEAMENTO DINÂMICO DE TEMAS NA INTERFACE
+   ========================================================================== */
+html, body, #root, .app-root {
+  background-color: var(--color-bg-base) !important;
+  color: var(--color-text-primary) !important;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--color-bg-base);
+/* ==========================================================================
+   TEMA 2: CHARCOAL DARK (GRAFITE NEUTRO)
+   ========================================================================== */
+[data-theme="CHARCOAL_DARK"] body,
+[data-theme="CHARCOAL_DARK"] #root,
+[data-theme="CHARCOAL_DARK"] main {
+  background-color: #0F1014 !important;
+  background-image: none !important;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #262E40;
-  border-radius: 4px;
+[data-theme="CHARCOAL_DARK"] .unified-navbar,
+[data-theme="CHARCOAL_DARK"] .status-bar {
+  background-color: #14161C !important;
+  border-color: #242833 !important;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #3B82F6;
+[data-theme="CHARCOAL_DARK"] div[class*="bg-gradient-to-br"],
+[data-theme="CHARCOAL_DARK"] div[class*="bg-\[\#161922\]"],
+[data-theme="CHARCOAL_DARK"] div[class*="bg-\[\#121620\]"],
+[data-theme="CHARCOAL_DARK"] div[class*="bg-\[\#141722\]"],
+[data-theme="CHARCOAL_DARK"] div[class*="bg-\[\#191d27\]"],
+[data-theme="CHARCOAL_DARK"] div[class*="bg-\[\#1a1d26\]"] {
+  background: #171922 !important;
+  border-color: #272C3A !important;
+}
+
+[data-theme="CHARCOAL_DARK"] div[class*="bg-\[\#11131a\]"],
+[data-theme="CHARCOAL_DARK"] div[class*="bg-\[\#10121a\]"],
+[data-theme="CHARCOAL_DARK"] div[class*="bg-\[\#0e1017\]"],
+[data-theme="CHARCOAL_DARK"] div[class*="bg-\[\#0b0e14\]"],
+[data-theme="CHARCOAL_DARK"] input,
+[data-theme="CHARCOAL_DARK"] select {
+  background-color: #0F1117 !important;
+  border-color: #242833 !important;
+}
+
+[data-theme="CHARCOAL_DARK"] button[class*="bg-blue-600"],
+[data-theme="CHARCOAL_DARK"] button[class*="bg-red-600"] {
+  background-color: #475569 !important;
+}
+[data-theme="CHARCOAL_DARK"] button[class*="bg-blue-600"]:hover,
+[data-theme="CHARCOAL_DARK"] button[class*="bg-red-600"]:hover {
+  background-color: #334155 !important;
+}
+
+/* ==========================================================================
+   TEMA 3: EMERALD BANKING (VERDE ESMERALDA)
+   ========================================================================== */
+[data-theme="EMERALD_DARK"] body,
+[data-theme="EMERALD_DARK"] #root,
+[data-theme="EMERALD_DARK"] main {
+  background-color: #060E0B !important;
+  background-image: none !important;
+}
+
+[data-theme="EMERALD_DARK"] .unified-navbar,
+[data-theme="EMERALD_DARK"] .status-bar {
+  background-color: #0B1713 !important;
+  border-color: #173027 !important;
+}
+
+[data-theme="EMERALD_DARK"] div[class*="bg-gradient-to-br"],
+[data-theme="EMERALD_DARK"] div[class*="bg-\[\#161922\]"],
+[data-theme="EMERALD_DARK"] div[class*="bg-\[\#121620\]"],
+[data-theme="EMERALD_DARK"] div[class*="bg-\[\#141722\]"],
+[data-theme="EMERALD_DARK"] div[class*="bg-\[\#191d27\]"],
+[data-theme="EMERALD_DARK"] div[class*="bg-\[\#1a1d26\]"] {
+  background: #0E1F1A !important;
+  border-color: #1A3D32 !important;
+}
+
+[data-theme="EMERALD_DARK"] div[class*="bg-\[\#11131a\]"],
+[data-theme="EMERALD_DARK"] div[class*="bg-\[\#10121a\]"],
+[data-theme="EMERALD_DARK"] div[class*="bg-\[\#0e1017\]"],
+[data-theme="EMERALD_DARK"] div[class*="bg-\[\#0b0e14\]"],
+[data-theme="EMERALD_DARK"] input,
+[data-theme="EMERALD_DARK"] select {
+  background-color: #081410 !important;
+  border-color: #173027 !important;
+}
+
+[data-theme="EMERALD_DARK"] button[class*="bg-blue-600"],
+[data-theme="EMERALD_DARK"] button[class*="bg-red-600"] {
+  background-color: #059669 !important;
+}
+[data-theme="EMERALD_DARK"] button[class*="bg-blue-600"]:hover,
+[data-theme="EMERALD_DARK"] button[class*="bg-red-600"]:hover {
+  background-color: #047857 !important;
+}
+
+/* ==========================================================================
+   TEMA 4: RUBY MEZZOLD (ESCARLATE EXECUTIVO)
+   ========================================================================== */
+[data-theme="RUBY_DARK"] body,
+[data-theme="RUBY_DARK"] #root,
+[data-theme="RUBY_DARK"] main {
+  background-color: #0E070B !important;
+  background-image: none !important;
+}
+
+[data-theme="RUBY_DARK"] .unified-navbar,
+[data-theme="RUBY_DARK"] .status-bar {
+  background-color: #160A11 !important;
+  border-color: #311526 !important;
+}
+
+[data-theme="RUBY_DARK"] div[class*="bg-gradient-to-br"],
+[data-theme="RUBY_DARK"] div[class*="bg-\[\#161922\]"],
+[data-theme="RUBY_DARK"] div[class*="bg-\[\#121620\]"],
+[data-theme="RUBY_DARK"] div[class*="bg-\[\#141722\]"],
+[data-theme="RUBY_DARK"] div[class*="bg-\[\#191d27\]"],
+[data-theme="RUBY_DARK"] div[class*="bg-\[\#1a1d26\]"] {
+  background: #1C0C16 !important;
+  border-color: #3D182F !important;
+}
+
+[data-theme="RUBY_DARK"] div[class*="bg-\[\#11131a\]"],
+[data-theme="RUBY_DARK"] div[class*="bg-\[\#10121a\]"],
+[data-theme="RUBY_DARK"] div[class*="bg-\[\#0e1017\]"],
+[data-theme="RUBY_DARK"] div[class*="bg-\[\#0b0e14\]"],
+[data-theme="RUBY_DARK"] input,
+[data-theme="RUBY_DARK"] select {
+  background-color: #11080E !important;
+  border-color: #2F1325 !important;
+}
+
+[data-theme="RUBY_DARK"] button[class*="bg-blue-600"] {
+  background-color: #DC2626 !important;
+}
+[data-theme="RUBY_DARK"] button[class*="bg-blue-600"]:hover {
+  background-color: #B91C1C !important;
+}
+
+/* ==========================================================================
+   TEMA 5: CORPORATE LIGHT (CLARO)
+   ========================================================================== */
+[data-theme="CORPORATE_LIGHT"] body,
+[data-theme="CORPORATE_LIGHT"] #root,
+[data-theme="CORPORATE_LIGHT"] main {
+  background-color: #F1F5F9 !important;
+  background-image: none !important;
+  color: #0F172A !important;
+}
+
+[data-theme="CORPORATE_LIGHT"] .unified-navbar,
+[data-theme="CORPORATE_LIGHT"] .status-bar {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-gradient-to-br"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-\[\#161922\]"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-\[\#121620\]"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-\[\#141722\]"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-\[\#191d27\]"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-\[\#1a1d26\]"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-zinc-900"] {
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+}
+
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-\[\#11131a\]"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-\[\#10121a\]"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-\[\#0e1017\]"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-\[\#0b0e14\]"],
+[data-theme="CORPORATE_LIGHT"] div[class*="bg-zinc-950"],
+[data-theme="CORPORATE_LIGHT"] input,
+[data-theme="CORPORATE_LIGHT"] select {
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+[data-theme="CORPORATE_LIGHT"] span[class*="text-slate-100"],
+[data-theme="CORPORATE_LIGHT"] span[class*="text-slate-200"],
+[data-theme="CORPORATE_LIGHT"] p[class*="text-slate-100"],
+[data-theme="CORPORATE_LIGHT"] p[class*="text-slate-200"],
+[data-theme="CORPORATE_LIGHT"] h1,
+[data-theme="CORPORATE_LIGHT"] h2,
+[data-theme="CORPORATE_LIGHT"] h3,
+[data-theme="CORPORATE_LIGHT"] h4 {
+  color: #0F172A !important;
+}
+
+[data-theme="CORPORATE_LIGHT"] span[class*="text-slate-300"],
+[data-theme="CORPORATE_LIGHT"] span[class*="text-slate-400"],
+[data-theme="CORPORATE_LIGHT"] p[class*="text-slate-300"],
+[data-theme="CORPORATE_LIGHT"] p[class*="text-slate-400"] {
+  color: #475569 !important;
 }
 
 /* ==========================================================================
