@@ -4,6 +4,21 @@ export type StatusTitulo = 'EM_ABERTO' | 'PAGO' | 'VENCIDO' | 'RENEGOCIADO';
 export type TipoMovimentacao = 'BAIXA_TOTAL' | 'BAIXA_PARCIAL' | 'ESTORNO';
 export type TipoPessoa = 'PF' | 'PJ';
 
+export type PerfilUsuario = 'ADMIN' | 'OPERADOR' | 'FINANCEIRO';
+
+export interface Usuario {
+  id: string;
+  nome: string;
+  username: string;
+  email: string;
+  senhaHash: string; // Em ambiente real, hash bcrypt
+  perfil: PerfilUsuario;
+  ativo: boolean;
+  avatarUrl?: string;
+  criado_em: string;
+  ultimoAcesso?: string;
+}
+
 export interface EmpresaConfig {
   razaoSocial: string;
   nomeFantasia: string;

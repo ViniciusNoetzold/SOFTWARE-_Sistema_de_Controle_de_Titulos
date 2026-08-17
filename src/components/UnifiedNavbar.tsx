@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { 
   Users, DollarSign, CreditCard, AlertOctagon, ArchiveRestore, 
   WalletCards, Settings, Wrench, Activity, FileText, FileSpreadsheet, 
-  FileBadge, Calculator, Percent, BadgePercent, LogOut, FilePlus, ChevronDown, Check, QrCode
+  FileBadge, Calculator, Percent, BadgePercent, LogOut, FilePlus, ChevronDown, Check, QrCode, UserCheck
 } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 interface UnifiedNavbarProps {
   currentView?: string;
@@ -26,6 +27,7 @@ export function UnifiedNavbar({
   onOpenDescCedente,
   onStopProcess,
 }: UnifiedNavbarProps) {
+  const { currentUser, logout } = useAppContext();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +52,8 @@ export function UnifiedNavbar({
     document.body.removeChild(element);
   };
 
-  const navItems = [
+  // Definição Completa dos Menus da Barra Superior
+  const menuConfig = [
     {
       id: 'cadastros',
       label: 'Cadastros',
@@ -58,30 +61,49 @@ export function UnifiedNavbar({
       action: () => onNavigate('cadastros'),
       activeViews: ['cadastros'],
       items: [
-        { label: 'Central de Cadastros', view: 'cadastros', icon: Users, action: () => onNavigate('cadastros') },
+        { label: 'Gerenciador de Cadastros (Clientes/Fornecedores)', view: 'cadastros', icon: Users, action: () => onNavigate('cadastros') }
       ]
     },
     {
-      id: 'titulos',
-      label: 'Títulos',
-      icon: FileSpreadsheet,
+      id: 'contas_receber',
+      label: 'Contas a Receber',
+      icon: DollarSign,
       action: () => onNavigate('contas_receber'),
-      activeViews: ['contas_receber', 'contas_pagar', 'lancamento_titulos'],
+      activeViews: ['contas_receber', 'lancamento_titulos'],
       items: [
-        { label: 'Novo Título (Lançamento)', view: 'lancamento_titulos', icon: FilePlus, action: () => onNavigate('lancamento_titulos') },
-        { label: 'Contas a Receber', view: 'contas_receber', icon: DollarSign, action: () => onNavigate('contas_receber') },
-        { label: 'Contas a Pagar', view: 'contas_pagar', icon: CreditCard, action: () => onNavigate('contas_pagar') },
+        { label: 'Listagem de Recebíveis', view: 'contas_receber', icon: DollarSign, action: () => onNavigate('contas_receber') },
+        { label: 'Novo Lançamento de Título', view: 'lancamento_titulos', icon: FilePlus, action: () => onNavigate('lancamento_titulos') }
+      ]
+    },
+    {
+      id: 'contas_pagar',
+      label: 'Contas a Pagar',
+      icon: CreditCard,
+      action: () => onNavigate('contas_pagar'),
+      activeViews: ['contas_pagar'],
+      items: [
+        { label: 'Listagem de Contas a Pagar', view: 'contas_pagar', icon: CreditCard, action: () => onNavigate('contas_pagar') }
       ]
     },
     {
       id: 'cobranca',
-      label: 'Cobrança',
+      label: 'Cobrança & PIX',
       icon: AlertOctagon,
       action: () => onNavigate('cobranca'),
       activeViews: ['cobranca'],
       items: [
-        { label: 'Régua de Cobrança', view: 'cobranca', icon: AlertOctagon, action: () => onNavigate('cobranca') },
-        { label: 'Gerador PIX (BR Code)', view: 'cobranca', icon: QrCode, action: () => onNavigate('cobranca') },
+        { label: 'Régua de Inadimplência & E-mail', view: 'cobranca', icon: AlertOctagon, action: () => onNavigate('cobranca') },
+        { label: 'Gerador PIX (BR Code / Copia e Cola)', view: 'cobranca', icon: QrCode, action: () => onNavigate('cobranca') }
+      ]
+    },
+    {
+      id: 'cheques',
+      label: 'Custódia de Cheques',
+      icon: WalletCards,
+      action: () => onNavigate('cheques'),
+      activeViews: ['cheques'],
+      items: [
+        { label: 'Gestão de Cheques (Recebidos/Emitidos)', view: 'cheques', icon: WalletCards, action: () => onNavigate('cheques') }
       ]
     },
     {
@@ -91,27 +113,7 @@ export function UnifiedNavbar({
       action: () => onNavigate('relatorios'),
       activeViews: ['relatorios'],
       items: [
-        { label: 'Central de Relatórios Gerenciais', view: 'relatorios', icon: FileText, action: () => onNavigate('relatorios') },
-      ]
-    },
-    {
-      id: 'graficos',
-      label: 'Gráficos',
-      icon: Activity,
-      action: () => onNavigate('home'), // Retorna para o Dashboard base
-      activeViews: ['dashboard', 'home'],
-      items: [
-        { label: 'Dashboard Gerencial', view: 'home', icon: Activity, action: () => onNavigate('home') },
-      ]
-    },
-    {
-      id: 'cheques',
-      label: 'Cheques',
-      icon: WalletCards,
-      action: () => onNavigate('cheques'),
-      activeViews: ['cheques'],
-      items: [
-        { label: 'Gestão de Cheques', view: 'cheques', icon: WalletCards, action: () => onNavigate('cheques') },
+        { label: 'Central de Relatórios Gerenciais', view: 'relatorios', icon: FileText, action: () => onNavigate('relatorios') }
       ]
     },
     {
@@ -133,11 +135,10 @@ export function UnifiedNavbar({
       activeViews: ['utilitarios'],
       items: [
         { label: 'Borderô', view: '', icon: FileSpreadsheet, action: onOpenBordero },
-        { label: 'B. Simples', view: '', icon: FileText, action: onOpenSimples },
-        { label: 'B. Anfac', view: '', icon: FileBadge, action: handleAnfac },
-        { label: 'Calculadora Financeira', view: 'utilitarios', icon: Calculator, action: () => onNavigate('utilitarios') },
-        { label: 'Desconto', view: '', icon: Percent, action: onOpenDesconto },
-        { label: 'Desc. Cedente', view: '', icon: BadgePercent, action: onOpenDescCedente },
+        { label: 'Simples', view: '', icon: FileBadge, action: onOpenSimples },
+        { label: 'Desconto', view: '', icon: Calculator, action: onOpenDesconto },
+        { label: 'Desc. Cedente', view: '', icon: Percent, action: onOpenDescCedente },
+        { label: 'Calculadoras & Backup', view: 'utilitarios', icon: Wrench, action: () => onNavigate('utilitarios') },
       ]
     },
     {
@@ -145,20 +146,23 @@ export function UnifiedNavbar({
       label: 'Sistema',
       icon: Settings,
       action: () => onNavigate('sistema'),
-      activeViews: ['sistema'],
+      activeViews: ['sistema', 'usuarios'],
       items: [
-        { label: 'Configurações Globais', view: 'sistema', icon: Settings, action: () => onNavigate('sistema') },
-        { label: 'Parar Processos (STOP)', view: '', icon: LogOut, action: onStopProcess },
+        { label: 'Configurações Globais da Empresa', view: 'sistema', icon: Settings, action: () => onNavigate('sistema') },
+        ...(currentUser?.perfil === 'ADMIN' ? [
+          { label: 'Usuários & Permissões (CRUD Admin)', view: 'usuarios', icon: Users, action: () => onNavigate('usuarios') }
+        ] : []),
+        { label: 'Sair da Aplicação', view: '', icon: LogOut, action: logout }
       ]
-    },
+    }
   ];
 
-  const handleItemClick = (item: typeof navItems[0]) => {
-    item.action();
-    if (item.items.length > 1) {
-      setActiveMenu(activeMenu === item.id ? null : item.id);
-    } else {
+  const handleMenuClick = (menu: typeof menuConfig[0]) => {
+    if (menu.items.length === 1) {
+      menu.action();
       setActiveMenu(null);
+    } else {
+      setActiveMenu(activeMenu === menu.id ? null : menu.id);
     }
   };
 
@@ -168,33 +172,30 @@ export function UnifiedNavbar({
   };
 
   return (
-    <div 
-      ref={menuRef} 
-      data-tauri-drag-region
-      className="flex items-center justify-between bg-[#14171d] border-b border-[#252a36] px-4 py-2 select-none z-30 relative shadow-md overflow-hidden max-w-full"
-    >
-      {/* Primary Modules with Active Indicators */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap max-w-[calc(100%-140px)]">
-        {navItems.map((item) => {
+    <div ref={menuRef} className="w-full bg-[#12151e] border-b border-[#252b3b] px-3 py-1.5 flex items-center justify-between shadow-xl relative z-40 select-none">
+      
+      {/* Menu Options Bar */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {menuConfig.map((item) => {
           const Icon = item.icon;
           const isOpen = activeMenu === item.id;
           const isActive = item.activeViews.includes(currentView);
 
           return (
-            <div key={item.id} className="relative shrink-0">
-              <button 
-                onClick={() => handleItemClick(item)}
-                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all text-xs font-bold focus:outline-none ${
+            <div key={item.id} className="relative">
+              <button
+                onClick={() => handleMenuClick(item)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs transition-all duration-200 relative group ${
                   isActive
-                    ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.45)] border border-red-500 scale-[1.02]' 
+                    ? 'bg-red-600 text-white font-bold shadow-[0_0_15px_rgba(220,38,38,0.45)]'
                     : isOpen
-                    ? 'bg-[#222733] text-white border border-[#2d3445]'
-                    : 'text-slate-300 hover:text-white hover:bg-[#1c202b]'
+                    ? 'bg-[#1e2330] text-slate-100 border border-[#2f374a]'
+                    : 'text-slate-300 hover:text-white hover:bg-[#1a1f2b]'
                 }`}
               >
-                {/* Glowing Indicator Dot for Active Module */}
+                {/* Glowing Dot on Active */}
                 {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_#ffffff] animate-pulse shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shadow-[0_0_8px_#ffffff]" />
                 )}
 
                 <Icon 
@@ -257,20 +258,49 @@ export function UnifiedNavbar({
         })}
       </div>
 
-      {/* Mezzold Studio Logo Badge on Right */}
-      <div 
-        onClick={() => onNavigate('home')} 
-        className="flex items-center gap-2.5 cursor-pointer group px-2 py-1 rounded-xl hover:bg-[#1c202b] transition-all shrink-0 ml-2"
-        title="Voltar ao Dashboard Base"
-      >
-        <div className="flex flex-col items-end leading-none">
-          <span className="font-bold text-slate-200 tracking-wider uppercase text-xs group-hover:text-white transition-colors">MEZZOLD</span>
-          <span className="text-[9px] text-slate-500 tracking-widest uppercase mt-0.5 group-hover:text-red-400 transition-colors font-mono">STUDIO</span>
+      {/* Perfil do Usuário Logado & Logo */}
+      <div className="flex items-center gap-3 shrink-0 ml-2">
+        
+        {/* Chip Visual do Usuário */}
+        {currentUser && (
+          <div className="flex items-center gap-2 bg-[#1a1e2b] border border-[#2a3246] px-2.5 py-1 rounded-xl">
+            <img
+              src={currentUser.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
+              alt={currentUser.nome}
+              className="w-6 h-6 rounded-lg object-cover border border-red-500/40 shrink-0"
+            />
+            <div className="hidden lg:flex flex-col text-left leading-tight">
+              <span className="text-[11px] font-bold text-slate-100 truncate max-w-[110px]">{currentUser.nome}</span>
+              <span className="text-[9px] font-mono text-red-400 uppercase font-bold">{currentUser.perfil}</span>
+            </div>
+
+            <button
+              onClick={logout}
+              className="p-1 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors ml-1"
+              title="Sair do Sistema"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* Logo Badge Mezzold Studio */}
+        <div 
+          onClick={() => onNavigate('home')} 
+          className="flex items-center gap-2.5 cursor-pointer group px-2 py-1 rounded-xl hover:bg-[#1c202b] transition-all"
+          title="Voltar ao Dashboard Base"
+        >
+          <div className="flex flex-col items-end leading-none">
+            <span className="font-bold text-slate-200 tracking-wider uppercase text-xs group-hover:text-white transition-colors">MEZZOLD</span>
+            <span className="text-[9px] text-slate-500 tracking-widest uppercase mt-0.5 group-hover:text-red-400 transition-colors font-mono">STUDIO</span>
+          </div>
+          <div className="w-7 h-7 rounded-lg bg-[#222733] border border-[#2e3545] flex items-center justify-center shadow-[0_0_15px_rgba(220,38,38,0.1)] group-hover:border-red-500/50 transition-all shrink-0">
+            <span className="font-black text-red-500 text-base leading-none">M</span>
+          </div>
         </div>
-        <div className="w-7 h-7 rounded-lg bg-[#222733] border border-[#2e3545] flex items-center justify-center shadow-[0_0_15px_rgba(220,38,38,0.1)] group-hover:border-red-500/50 transition-all shrink-0">
-          <span className="font-black text-red-500 text-base leading-none">M</span>
-        </div>
+
       </div>
+
     </div>
   );
 }

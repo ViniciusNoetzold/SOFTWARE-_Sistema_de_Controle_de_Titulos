@@ -18,6 +18,8 @@ import { DescontoModal } from './components/modals/DescontoModal';
 import { DescCedenteModal } from './components/modals/DescCedenteModal';
 
 // Views
+import { LoginView } from './components/views/LoginView';
+import { UsuariosView } from './components/views/UsuariosView';
 import { CadastrosView } from './components/views/CadastrosView';
 import { ArquivoMortoView } from './components/views/ArquivoMortoView';
 import { ChequesView } from './components/views/ChequesView';
@@ -32,6 +34,8 @@ import { LancamentoTitulosView } from './components/views/LancamentoTitulosView'
 import { RelatoriosView } from './components/views/RelatoriosView';
 
 function MainAppContent() {
+  const { currentUser, toastMessage, showToast } = useAppContext();
+
   const [currentView, setCurrentView] = useState<string>('home');
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isReportViewerOpen, setIsReportViewerOpen] = useState(false);
@@ -43,7 +47,10 @@ function MainAppContent() {
   const [openDescontoModal, setOpenDescontoModal] = useState(false);
   const [openDescCedenteModal, setOpenDescCedenteModal] = useState(false);
 
-  const { toastMessage, showToast } = useAppContext();
+  // Se não estiver autenticado, exibe a Tela de Login Obrigatória
+  if (!currentUser) {
+    return <LoginView />;
+  }
 
   // Fecha todas as janelas modais de relatórios/ferramentas sobrepostas
   const closeAllModals = () => {
@@ -111,7 +118,7 @@ function MainAppContent() {
         );
       case 'cheques':
         return (
-          <WindowFrame title="Gestão de Cheques" subtitle="Controle de cheques emitidos e recebidos, custódia e devoluções" icon={<WalletCards size={18} />} onClose={handleCloseWindow}>
+          <WindowFrame title="Gestão de Cheques" subtitle="Controle de cheques emitidos e recebidos, custódia e auditoria por usuário" icon={<WalletCards size={18} />} onClose={handleCloseWindow}>
             <ChequesView />
           </WindowFrame>
         );
@@ -119,6 +126,12 @@ function MainAppContent() {
         return (
           <WindowFrame title="Configurações do Sistema" subtitle="Gerencie os parâmetros globais, acessos e auditoria" icon={<Settings size={18} />} onClose={handleCloseWindow}>
             <SistemaView />
+          </WindowFrame>
+        );
+      case 'usuarios':
+        return (
+          <WindowFrame title="Gestão de Usuários e Permissões" subtitle="Controle de contas, perfis e permissões de acesso (Admin)" icon={<Users size={18} />} onClose={handleCloseWindow}>
+            <UsuariosView />
           </WindowFrame>
         );
       case 'utilitarios':
