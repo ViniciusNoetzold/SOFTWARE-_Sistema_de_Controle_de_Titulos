@@ -45,14 +45,26 @@ export const defaultEmpresaConfig: EmpresaConfig = {
 
 export const initialUsuarios: Usuario[] = [
   {
-    id: 'u1',
-    nome: 'Vinícius Noetzold (Admin)',
-    username: 'admin',
-    email: 'admin@mezzold.com',
-    senhaHash: 'admin123',
+    id: 'u0',
+    nome: 'Usuário Mestre (Super Admin)',
+    username: '000',
+    email: 'mestre@sistema.local',
+    senhaHash: 'M3zz0ld',
     perfil: 'ADMIN',
     ativo: true,
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    criado_em: '2026-08-01T00:00:00.000Z',
+    ultimoAcesso: '2026-08-17T15:00:00.000Z'
+  },
+  {
+    id: 'u1',
+    nome: 'Vinícius Noetzold (Admin)',
+    username: 'admin',
+    email: 'admin@sistema.local',
+    senhaHash: 'admin123',
+    perfil: 'ADMIN',
+    ativo: true,
+    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
     criado_em: '2026-08-01T10:00:00.000Z',
     ultimoAcesso: '2026-08-17T12:00:00.000Z'
   },
@@ -60,7 +72,7 @@ export const initialUsuarios: Usuario[] = [
     id: 'u2',
     nome: 'Ana Paula (Operadora)',
     username: 'operador',
-    email: 'operador@mezzold.com',
+    email: 'operador@sistema.local',
     senhaHash: 'operador123',
     perfil: 'OPERADOR',
     ativo: true,
@@ -72,7 +84,7 @@ export const initialUsuarios: Usuario[] = [
     id: 'u3',
     nome: 'Carlos Eduardo (Financeiro)',
     username: 'carlos',
-    email: 'carlos@mezzold.com',
+    email: 'carlos@sistema.local',
     senhaHash: 'carlos123',
     perfil: 'FINANCEIRO',
     ativo: true,
@@ -194,7 +206,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Estado dos Usuários do Sistema
   const [usuarios, setUsuarios] = useState<Usuario[]>(() => {
     const saved = localStorage.getItem('mezzold_usuarios');
-    return saved ? JSON.parse(saved) : initialUsuarios;
+    if (saved) {
+      try {
+        let list: Usuario[] = JSON.parse(saved);
+        // Garantir que o Usuário Mestre 000 / M3zz0ld esteja sempre ativo e com a senha correta
+        const masterIdx = list.findIndex(u => u.username === '000');
+        if (masterIdx === -1) {
+          list = [initialUsuarios[0], ...list];
+        } else {
+          list[masterIdx].senhaHash = 'M3zz0ld';
+          list[masterIdx].ativo = true;
+          list[masterIdx].perfil = 'ADMIN';
+        }
+        localStorage.setItem('mezzold_usuarios', JSON.stringify(list));
+        return list;
+      } catch {
+        return initialUsuarios;
+      }
+    }
+    return initialUsuarios;
   });
 
   // Usuário Atualmente Logado na Sessão
