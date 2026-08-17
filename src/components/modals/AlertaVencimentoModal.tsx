@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { formatCurrency } from '../../lib/utils';
+import { generatePixBRCode } from '../../lib/pixService';
 
 export function AlertaVencimentoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { assinaturaLicenca, licencaStatus, empresaConfig, showToast } = useAppContext();
@@ -87,10 +88,14 @@ export function AlertaVencimentoModal({ isOpen, onClose }: { isOpen: boolean; on
           </div>
 
           {/* Dados PIX */}
-          <div className="pt-3 border-t border-[#1e2536] space-y-2">
-            <span className="text-[10px] uppercase text-slate-400 font-bold block">
-              Chave PIX Oficial para Pagamento:
-            </span>
+          <div className="pt-3 border-t border-[#1e2536] space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase text-slate-400 font-bold block">
+                Chave PIX Oficial para Pagamento:
+              </span>
+              <span className="text-[10px] text-emerald-400 font-bold">QR Code Pronto</span>
+            </div>
+
             <div className="flex items-center justify-between bg-[#141824] border border-[#2b354a] px-3 py-2 rounded-xl text-xs">
               <span className="text-amber-400 font-bold tracking-wider">{chavePix}</span>
               <button
@@ -99,9 +104,42 @@ export function AlertaVencimentoModal({ isOpen, onClose }: { isOpen: boolean; on
                 className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300 font-semibold px-2 py-0.5 bg-blue-950/60 border border-blue-800 rounded-md transition-colors"
               >
                 {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                <span>{copied ? 'Copiado!' : 'Copiar'}</span>
+                <span>{copied ? 'Copiado!' : 'Copiar Chave'}</span>
               </button>
             </div>
+
+            {/* QR Code Real Gerado para o Valor da Licença */}
+            {(() => {
+              const payload = generatePixBRCode({
+                chave: chavePix,
+                favorecido: 'MEZZOLD STUDIOS',
+                cidade: 'SAO PAULO',
+                valor: valorMensalidade
+              });
+
+              return (
+                <div className="flex flex-col items-center justify-center p-3 bg-[#0a0c12] rounded-xl border border-[#1e2536] space-y-2">
+                  <div className="bg-white p-2 rounded-xl border-2 border-emerald-500/40 shadow-md">
+                    <img 
+                      src={`https://quickchart.io/qr?text=${encodeURIComponent(payload)}&size=150&margin=1`}
+                      alt="QR Code PIX Mensalidade"
+                      className="w-32 h-32 object-contain"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(payload);
+                      showToast('PIX Copia e Cola completo copiado com sucesso!');
+                    }}
+                    className="text-[10px] text-emerald-400 hover:text-emerald-300 font-mono underline"
+                  >
+                    📋 Copiar Código PIX Copia e Cola Completo
+                  </button>
+                </div>
+              );
+            })()}
+
           </div>
         </div>
 

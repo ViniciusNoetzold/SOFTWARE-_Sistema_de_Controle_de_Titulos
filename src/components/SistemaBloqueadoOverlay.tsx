@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { formatCurrency } from '../lib/utils';
+import { generatePixBRCode } from '../lib/pixService';
 
 export function SistemaBloqueadoOverlay() {
   const { 
@@ -105,22 +106,60 @@ export function SistemaBloqueadoOverlay() {
             <span className="text-emerald-400 font-bold">{formatCurrency(assinaturaLicenca.valorMensalidade || 180)}</span>
           </div>
           
-          {/* Chave PIX Oficial de Pagamento */}
-          <div className="pt-2 border-t border-[#23293a] flex flex-col gap-1 text-[11px]">
+          {/* Chave PIX Oficial de Pagamento e QR Code */}
+          <div className="pt-2.5 border-t border-[#23293a] flex flex-col gap-2 text-[11px]">
             <div className="flex justify-between items-center">
               <span className="text-slate-400">Chave PIX Oficial:</span>
               <span className="text-amber-400 font-mono font-bold">{assinaturaLicenca.chavePixLicenca || '5554997030349'}</span>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText(assinaturaLicenca.chavePixLicenca || '5554997030349');
-                showToast('Chave PIX copiada para a área de transferência!');
-              }}
-              className="text-[10px] text-blue-400 hover:text-blue-300 font-mono text-right underline py-0.5"
-            >
-              📋 Copiar Chave PIX
-            </button>
+
+            {/* QR Code Automático para Pagamento no Bloqueio */}
+            {(() => {
+              const chave = assinaturaLicenca.chavePixLicenca || '5554997030349';
+              const valor = assinaturaLicenca.valorMensalidade || 180;
+              const payload = generatePixBRCode({
+                chave,
+                favorecido: 'MEZZOLD STUDIOS',
+                cidade: 'SAO PAULO',
+                valor
+              });
+
+              return (
+                <div className="flex flex-col items-center justify-center p-2.5 bg-[#0a0c12] rounded-xl border border-[#23293a] space-y-1.5 mt-1">
+                  <div className="bg-white p-2 rounded-xl border border-emerald-500/50 shadow-md">
+                    <img 
+                      src={`https://quickchart.io/qr?text=${encodeURIComponent(payload)}&size=130&margin=1`}
+                      alt="QR Code PIX Renovação"
+                      className="w-28 h-28 object-contain"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(chave);
+                        showToast('Chave PIX copiada!');
+                      }}
+                      className="text-[10px] text-blue-400 hover:text-blue-300 font-mono underline"
+                    >
+                      📋 Copiar Chave
+                    </button>
+                    <span className="text-slate-600">|</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(payload);
+                        showToast('PIX Copia e Cola copiado com sucesso!');
+                      }}
+                      className="text-[10px] text-emerald-400 hover:text-emerald-300 font-mono underline font-bold"
+                    >
+                      ⚡ Copiar Código PIX
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
           </div>
         </div>
 
