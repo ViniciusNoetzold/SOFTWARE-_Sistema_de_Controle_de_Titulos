@@ -31,12 +31,12 @@ export function StatusBar({ onOpenMasterLicenca }: { onOpenMasterLicenca?: () =>
   }, []);
 
   return (
-    <div className="status-bar no-print flex items-center justify-between bg-[#14171d] border-t border-[#252a36] px-5 py-2 text-[11px] text-slate-400 select-none z-10 relative">
+    <div className="status-bar no-print flex items-center justify-between bg-[#0B0E14] border-t border-[#1E2536] px-4 py-1.5 text-[11px] text-slate-400 select-none z-10 relative font-sans">
       
       {/* Canto Inferior Esquerdo com Versão & Atalho Master */}
       <div className="flex items-center gap-3">
-        <span className="font-mono text-slate-400 font-medium">Pronto</span>
-        <span className="text-[10px] bg-[#1e232e] border border-[#2d3445] text-slate-300 px-2 py-0.5 rounded-md font-mono tracking-wider">
+        <span className="font-mono text-slate-500 font-medium">Pronto</span>
+        <span className="text-[10px] bg-[#141824] border border-[#222B3D] text-slate-300 px-2 py-0.5 rounded font-mono tracking-wide">
           v1.0.3
         </span>
 
@@ -45,7 +45,7 @@ export function StatusBar({ onOpenMasterLicenca }: { onOpenMasterLicenca?: () =>
           <button
             type="button"
             onClick={onOpenMasterLicenca}
-            className="flex items-center gap-1 text-[10px] font-mono text-amber-400 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/40 px-2 py-0.5 rounded-md transition-all font-bold shadow-sm"
+            className="flex items-center gap-1 text-[10px] font-mono text-amber-400 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/40 px-2 py-0.5 rounded transition-all font-semibold shadow-sm"
             title="Abrir Painel Mestre de Licença e Mensalidade"
           >
             <Crown size={12} />
@@ -56,22 +56,22 @@ export function StatusBar({ onOpenMasterLicenca }: { onOpenMasterLicenca?: () =>
 
       {/* Alerta de Vencimento da Assinatura (3 dias antes - vermelho pequeno piscando) */}
       {licencaStatus.alertaAtivo && !licencaStatus.expirada && (
-        <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-red-950/80 border border-red-500/60 text-red-300 font-mono text-[10px] font-bold shadow-[0_0_12px_rgba(239,68,68,0.5)] animate-pulse">
-          <span className="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block" />
-          <AlertCircle size={12} className="text-red-400 shrink-0" />
-          <span>ASSINATURA: Vence em {licencaStatus.diasRestantes} dia(s) ({licencaStatus.dataVencimentoFormatada})</span>
+        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/50 text-rose-300 font-mono text-[10px] font-semibold shadow-sm animate-pulse">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping inline-block" />
+          <AlertCircle size={12} className="text-rose-400 shrink-0" />
+          <span>Assinatura: Vence em {licencaStatus.diasRestantes} dia(s) ({licencaStatus.dataVencimentoFormatada})</span>
         </div>
       )}
 
       {/* Canto Inferior Direito: Servidor & Relógio */}
-      <div className="flex items-center gap-5">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></div>
-          <span className="text-slate-300 font-medium">Conectado ao Servidor Mezzold</span>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]"></div>
+          <span className="text-slate-400 font-normal">Servidor Online</span>
         </div>
-        <div className="flex items-center gap-2 text-slate-300 font-mono tracking-wide">
-          <span>{dateStr}</span>
-          <span className="text-red-500 font-bold">{timeStr}</span>
+        <div className="flex items-center gap-2 text-slate-300 font-mono text-[11px] tracking-tight">
+          <span className="text-slate-400">{dateStr}</span>
+          <span className="text-blue-400 font-semibold">{timeStr}</span>
         </div>
       </div>
     </div>

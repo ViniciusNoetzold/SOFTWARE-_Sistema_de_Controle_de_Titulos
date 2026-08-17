@@ -1,6 +1,113 @@
 @import "tailwindcss";
 
-/* Ocultar barra de rolagem horizontal da navbar */
+/* ==========================================================================
+   DESIGN TOKENS & PALETA DE CORES SÓBRIA, PROFISSIONAL E MODERNA
+   ========================================================================== */
+:root {
+  /* Tipografia */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', var(--font-sans);
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, monospace;
+
+  /* Cores Neutras (Superfícies & Backgrounds) */
+  --color-bg-base: #0B0E14;
+  --color-bg-surface: #121620;
+  --color-bg-elevated: #181D2A;
+  --color-bg-subtle: #1E2435;
+  --color-bg-input: #0F1219;
+
+  /* Bordas e Divisores */
+  --color-border-subtle: #1F2637;
+  --color-border-default: #2A3349;
+  --color-border-focus: #3B82F6;
+
+  /* Textos */
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-text-dim: #475569;
+
+  /* Primária: Azul Petróleo / Azul Aço Executivo */
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-subtle: rgba(37, 99, 235, 0.15);
+
+  /* Acentos Financeiros (Status Sóbrios) */
+  --color-accent-emerald: #10B981;
+  --color-accent-emerald-subtle: rgba(16, 185, 129, 0.12);
+  --color-accent-amber: #F59E0B;
+  --color-accent-amber-subtle: rgba(245, 158, 11, 0.12);
+  --color-accent-rose: #EF4444;
+  --color-accent-rose-subtle: rgba(239, 68, 68, 0.12);
+  --color-accent-indigo: #6366F1;
+}
+
+/* ==========================================================================
+   TIPOGRAFIA GLOBAL & ANTI-ALIASING
+   ========================================================================== */
+html, body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.011em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+code, kbd, samp, pre, .font-mono {
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+/* Escala Tipográfica Padronizada */
+.text-display {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.text-h1 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.text-h2 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-h3 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.text-body {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+}
+
+.text-caption {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+}
+
+/* Ocultar barra de rolagem horizontal */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -9,23 +116,23 @@
   scrollbar-width: none;
 }
 
-/* Custom Scrollbar Escura para todo o app (impede a barra branca do navegador) */
+/* Custom Scrollbar Sofisticada em Slate Dark */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #111319;
+  background: var(--color-bg-base);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2b3242;
+  background: #262E40;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #ef4444;
+  background: #3B82F6;
 }
 
 /* ==========================================================================
