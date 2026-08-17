@@ -1,151 +1,380 @@
 import { useState } from 'react';
-import { X, FileSpreadsheet } from 'lucide-react';
+import { 
+  X, FileSpreadsheet, Printer, Download, CheckCircle2, 
+  FileText, Building2, Calendar, DollarSign, Layers, ArrowRight
+} from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
+import { formatCurrency, formatDateBR } from '../../lib/utils';
 
-interface TituloPendente {
-  id: string;
-  cliente: string;
-  numero: string;
-  vencimento: string;
-  valor: number;
-}
+export function BorderoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { titulos, entidades, empresaConfig, showToast } = useAppContext();
 
-const mockTitulos: TituloPendente[] = [
-  { id: '1', cliente: 'TechCorp Solutions', numero: 'NF-1027', vencimento: '2026-08-15', valor: 5500.00 },
-  { id: '2', cliente: 'Global Imports Ltda', numero: 'NF-1028', vencimento: '2026-08-18', valor: 12000.00 },
-  { id: '3', cliente: 'Comercial Silva', numero: 'NF-1029', vencimento: '2026-08-20', valor: 350.50 },
-  { id: '4', cliente: 'TechCorp Solutions', numero: 'NF-1030', vencimento: '2026-08-25', valor: 8900.00 },
-  { id: '5', cliente: 'Indústria ABC', numero: 'FAT-998', vencimento: '2026-08-28', valor: 45000.00 },
-];
-
-export function BorderoModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [selecionados, setSelecionados] = useState<string[]>([]);
-  
+  const [formatoSaida, setFormatoSaida] = useState<'TELA' | 'IMPRESSORA' | 'PDF'>('TELA');
+  const [observacoes, setObservacoes] = useState('');
+  const [isVisualizandoDoc, setIsVisualizandoDoc] = useState(false);
+
   if (!isOpen) return null;
+
+  // Filtra apenas os títulos a RECEBER que estão em aberto para cobrança/borderô
+  const titulosReceberEmAberto = titulos
+    .filter(t => t.tipo_titulo === 'RECEBER' && t.status !== 'PAGO')
+    .map(t => {
+      const ent = entidades.find(e => e.id === t.id_entidade);
+      return {
+        id: t.id,
+        cliente: ent ? ent.nome : 'Cliente Desconhecido',
+        documentoCliente: ent ? ent.documento : '',
+        telefoneCliente: ent ? ent.telefone : '',
+        numero: t.numero_documento,
+        vencimento: t.data_vencimento,
+        valor: t.saldo_devedor || t.valor_original
+      };
+    });
 
   const handleToggle = (id: string) => {
     setSelecionados(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
   const handleToggleAll = () => {
-    if (selecionados.length === mockTitulos.length) {
+    if (selecionados.length === titulosReceberEmAberto.length) {
       setSelecionados([]);
     } else {
-      setSelecionados(mockTitulos.map(t => t.id));
+      setSelecionados(titulosReceberEmAberto.map(t => t.id));
     }
   };
+
+  const titulosMarcados = titulosReceberEmAberto.filter(t => selecionados.includes(t.id));
+  const totalBorderô = titulosMarcados.reduce((acc, t) => acc + t.valor, 0);
 
   const handleGerar = () => {
     if (selecionados.length === 0) {
-      alert('Selecione ao menos um título para gerar o borderô.');
+      showToast('Selecione ao menos um título da lista para gerar o Borderô.');
       return;
     }
-    alert(`Borderô gerado com sucesso contendo ${selecionados.length} título(s)!`);
-    setSelecionados([]);
-    onClose();
+
+    if (formatoSaida === 'IMPRESSORA' || formatoSaida === 'PDF') {
+      setIsVisualizandoDoc(true);
+      setTimeout(() => {
+        window.print();
+      }, 400);
+    } else {
+      setIsVisualizandoDoc(true);
+    }
   };
 
-  const formatCurrency = (valor: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+  const handleImprimirDireto = () => {
+    window.print();
   };
+
+  const numeroBorderoGerado = `BOR-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 900) + 100)}`;
+  const dataEmissao = new Date().toLocaleDateString('pt-BR');
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="relative w-full max-w-4xl max-h-[85vh] bg-zinc-900/95 backdrop-blur-xl rounded-xl shadow-[0_0_80px_-15px_rgba(0,0,0,0.8)] border border-zinc-800/80 flex flex-col font-sans overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none font-sans text-slate-200">
+      <div className="fixed inset-0 bg-black/85 backdrop-blur-md no-print" onClick={onClose}></div>
+      
+      <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#141722] border border-[#2b3242] rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 z-10">
         
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/50 flex-shrink-0">
-          <h2 className="text-sm font-medium text-zinc-100 flex items-center gap-2">
-            <FileSpreadsheet size={16} className="text-red-500" />
-            Gerar Borderô de Cobrança
-          </h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors focus:outline-none bg-zinc-800/50 hover:bg-zinc-700/50 p-1.5 rounded-md">
-            <X size={16} strokeWidth={1.5} />
+        {/* Header Modal */}
+        <div className="px-6 py-4 border-b border-[#252b3b] flex items-center justify-between bg-[#10131c] shrink-0 no-print">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-red-600/15 border border-red-500/30 flex items-center justify-center text-red-500 shadow-md">
+              <FileSpreadsheet size={20} />
+            </div>
+            <div>
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-100 flex items-center gap-2">
+                <span>{isVisualizandoDoc ? 'Documento Oficial de Borderô de Cobrança' : 'Gerador de Borderô de Cobrança'}</span>
+                <span className="text-[9px] bg-red-600/20 text-red-400 border border-red-500/30 px-1.5 py-0.2 rounded font-mono font-bold">A4 & TELA</span>
+              </h2>
+              <p className="text-[11px] text-slate-400 font-mono">
+                {isVisualizandoDoc ? 'Visualize a relação formal timbrada pronta para impressão ou cobrança' : 'Selecione os títulos que deseja agrupar na mesma remessa de cobrança'}
+              </p>
+            </div>
+          </div>
+
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-100 p-1.5 font-mono text-sm">
+            ✕
           </button>
         </div>
 
-        {/* Body - Table */}
-        <div className="p-6 overflow-y-auto flex-1">
-          <div className="border border-zinc-800/50 rounded-lg overflow-hidden bg-zinc-950/30">
-            <table className="w-full text-left text-sm text-zinc-400">
-              <thead className="text-[11px] uppercase bg-zinc-950 text-zinc-500 border-b border-zinc-800/80 sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-3 font-semibold text-center w-12">
-                    <input 
-                      type="checkbox" 
-                      checked={selecionados.length === mockTitulos.length && mockTitulos.length > 0} 
-                      onChange={handleToggleAll} 
-                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-red-500 focus:ring-red-500/50 cursor-pointer" 
-                    />
-                  </th>
-                  <th className="px-4 py-3 font-semibold">Cliente</th>
-                  <th className="px-4 py-3 font-semibold">Nº Título</th>
-                  <th className="px-4 py-3 font-semibold text-center">Vencimento</th>
-                  <th className="px-4 py-3 font-semibold text-right">Valor</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/50">
-                {mockTitulos.map(t => (
-                  <tr key={t.id} className="hover:bg-zinc-800/30 transition-colors cursor-pointer" onClick={() => handleToggle(t.id)}>
-                    <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                       <input 
-                          type="checkbox" 
-                          checked={selecionados.includes(t.id)} 
-                          onChange={() => handleToggle(t.id)} 
-                          className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-red-500 focus:ring-red-500/50 cursor-pointer" 
-                        />
-                    </td>
-                    <td className="px-4 py-3 font-medium text-zinc-200">{t.cliente}</td>
-                    <td className="px-4 py-3 font-mono text-zinc-500">{t.numero}</td>
-                    <td className="px-4 py-3 font-mono text-center">{t.vencimento.split('-').reverse().join('/')}</td>
-                    <td className="px-4 py-3 font-mono text-right text-zinc-300">{formatCurrency(t.valor)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Footer - Actions */}
-        <div className="px-6 py-4 border-t border-zinc-800/80 bg-zinc-950/80 flex flex-col md:flex-row md:items-center justify-between gap-6 flex-shrink-0">
-          <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="w-full sm:w-48">
-              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Formato de Saída</label>
-              <div className="relative">
-                <select className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 cursor-pointer appearance-none">
-                  <option>Vídeo (Tela)</option>
-                  <option>Impressora</option>
-                  <option>PDF (Arquivo)</option>
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        {/* =========================================================================
+            TELA 1: SELEÇÃO DE TÍTULOS (SE NÃO ESTIVER VISUALIZANDO O DOCUMENTO)
+            ========================================================================= */}
+        {!isVisualizandoDoc ? (
+          <>
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              
+              {/* Barra de resumo da seleção */}
+              <div className="flex items-center justify-between p-3.5 bg-[#10131c] rounded-2xl border border-[#232938] font-mono text-xs">
+                <div className="flex items-center gap-2 text-slate-400">
+                  <span>Selecionados:</span>
+                  <span className="text-slate-100 font-bold bg-[#1a1f2d] px-2 py-0.5 rounded border border-[#2b3548]">
+                    {selecionados.length} de {titulosReceberEmAberto.length} títulos
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400">Total do Borderô:</span>
+                  <span className="text-emerald-400 font-bold text-sm bg-emerald-950/40 px-3 py-0.5 rounded-xl border border-emerald-500/30">
+                    {formatCurrency(totalBorderô)}
+                  </span>
                 </div>
               </div>
+
+              {/* Tabela de Títulos Pendentes */}
+              <div className="border border-[#252b3b] rounded-2xl overflow-hidden bg-[#10131c]">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-[#0c0e14] text-slate-400 border-b border-[#252b3b] uppercase text-[10px] font-mono sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-3 text-center w-12">
+                        <input 
+                          type="checkbox" 
+                          checked={selecionados.length === titulosReceberEmAberto.length && titulosReceberEmAberto.length > 0} 
+                          onChange={handleToggleAll} 
+                          className="w-4 h-4 rounded border-slate-700 bg-[#161922] text-red-600 focus:ring-red-500 cursor-pointer" 
+                        />
+                      </th>
+                      <th className="px-4 py-3 font-semibold">Cliente / Devedor</th>
+                      <th className="px-4 py-3 font-semibold">Nº Título / NF</th>
+                      <th className="px-4 py-3 font-semibold text-center">Vencimento</th>
+                      <th className="px-4 py-3 font-semibold text-right">Valor Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#1e2330]">
+                    {titulosReceberEmAberto.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-8 text-center text-slate-500 font-mono">
+                          Nenhum título a receber em aberto encontrado no momento.
+                        </td>
+                      </tr>
+                    ) : (
+                      titulosReceberEmAberto.map(t => (
+                        <tr 
+                          key={t.id} 
+                          className={`hover:bg-[#181d2a] transition-colors cursor-pointer ${
+                            selecionados.includes(t.id) ? 'bg-[#181c28]' : ''
+                          }`} 
+                          onClick={() => handleToggle(t.id)}
+                        >
+                          <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                            <input 
+                              type="checkbox" 
+                              checked={selecionados.includes(t.id)} 
+                              onChange={() => handleToggle(t.id)} 
+                              className="w-4 h-4 rounded border-slate-700 bg-[#161922] text-red-600 focus:ring-red-500 cursor-pointer" 
+                            />
+                          </td>
+                          <td className="px-4 py-3 font-bold text-slate-100">
+                            <div>{t.cliente}</div>
+                            <div className="text-[10px] text-slate-500 font-mono">{t.documentoCliente}</div>
+                          </td>
+                          <td className="px-4 py-3 font-mono text-red-400 font-bold">{t.numero}</td>
+                          <td className="px-4 py-3 font-mono text-center text-slate-300">{formatDateBR(t.vencimento)}</td>
+                          <td className="px-4 py-3 font-mono text-right text-emerald-400 font-bold">{formatCurrency(t.valor)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="flex-1">
-              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Observações</label>
-              <input 
-                type="text" 
-                placeholder="Instruções adicionais para o borderô..." 
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 placeholder:text-zinc-600" 
-              />
+
+            {/* Footer com Opções */}
+            <div className="px-6 py-4 border-t border-[#252b3b] bg-[#10131c] flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
+              <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="w-full sm:w-48">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-mono">Formato de Saída</label>
+                  <select 
+                    value={formatoSaida}
+                    onChange={e => setFormatoSaida(e.target.value as any)}
+                    className="w-full bg-[#161922] border border-[#2b3242] rounded-xl px-3 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-red-500 cursor-pointer font-bold"
+                  >
+                    <option value="TELA">Visualizar na Tela (A4)</option>
+                    <option value="IMPRESSORA">Enviar para Impressora</option>
+                    <option value="PDF">Salvar em PDF / Arquivo</option>
+                  </select>
+                </div>
+
+                <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-mono">Observações da Remessa</label>
+                  <input 
+                    type="text" 
+                    value={observacoes}
+                    onChange={e => setObservacoes(e.target.value)}
+                    placeholder="Instruções de cobrança, banco ou custódia..." 
+                    className="w-full bg-[#161922] border border-[#2b3242] rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-red-500" 
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button 
+                  type="button"
+                  onClick={onClose} 
+                  className="px-4 py-2.5 text-xs font-bold text-slate-300 bg-[#1a1f2d] hover:bg-[#252c3f] rounded-xl transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleGerar} 
+                  className="px-5 py-2.5 text-xs font-bold text-white bg-red-600 hover:bg-red-500 rounded-xl transition-all shadow-[0_0_15px_rgba(220,38,38,0.35)] flex items-center gap-2"
+                >
+                  <FileSpreadsheet size={15} />
+                  <span>Gerar Borderô</span>
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* =========================================================================
+             TELA 2: VISUALIZAÇÃO A4 OFICIAL DO BORDERÔ (DOCUMENTO GERADO)
+             ========================================================================= */
+          <div className="flex-1 flex flex-col overflow-hidden bg-[#0c0e14]">
+            
+            {/* Toolbar Superior da Visualização */}
+            <div className="p-3.5 bg-[#161922] border-b border-[#252b3b] flex items-center justify-between no-print shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsVisualizandoDoc(false)}
+                className="text-xs font-bold text-slate-300 hover:text-white bg-[#11131a] px-3.5 py-1.5 rounded-xl border border-[#2b3242] transition-colors"
+              >
+                ← Voltar à Seleção
+              </button>
+
+              <div className="flex items-center gap-3 font-mono text-xs">
+                <span className="text-slate-400">Borderô: <b className="text-slate-100">{numeroBorderoGerado}</b></span>
+                <span className="text-emerald-400 font-bold bg-emerald-950/40 px-2.5 py-1 rounded border border-emerald-500/30">
+                  Total: {formatCurrency(totalBorderô)}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleImprimirDireto}
+                className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-4 py-1.5 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+              >
+                <Printer size={14} />
+                <span>Imprimir / Salvar PDF</span>
+              </button>
+            </div>
+
+            {/* Documento A4 Timbrado */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-slate-900/40">
+              
+              <div className="printable-report-a4 bg-white text-slate-900 p-8 rounded-xl shadow-2xl w-full max-w-[800px] font-sans text-xs border border-slate-300 min-h-[900px] flex flex-col justify-between">
+                
+                <div>
+                  {/* Cabeçalho Oficial com Dados da Empresa */}
+                  <div className="border-b-2 border-slate-900 pb-4 mb-5 flex justify-between items-start">
+                    <div>
+                      <h1 className="text-base font-black uppercase text-slate-900 tracking-wide">
+                        {empresaConfig.razaoSocial || 'EMPRESA EXECUTIVA DE GESTÃO FINANCEIRA'}
+                      </h1>
+                      <p className="text-[11px] font-bold text-slate-700">
+                        {empresaConfig.nomeFantasia}
+                      </p>
+                      <p className="text-[10px] text-slate-600 font-mono mt-1">
+                        CNPJ: {empresaConfig.cnpj || '00.000.000/0001-00'} | IE: {empresaConfig.ie || 'ISENTO'}
+                      </p>
+                      <p className="text-[10px] text-slate-600">
+                        {empresaConfig.endereco || 'Endereço Comercial da Empresa'}
+                      </p>
+                    </div>
+
+                    <div className="text-right font-mono text-[10px] bg-slate-100 p-2.5 rounded border border-slate-300">
+                      <p className="font-bold text-red-700 text-xs">{numeroBorderoGerado}</p>
+                      <p className="text-slate-600 mt-0.5">Emissão: {dataEmissao}</p>
+                      <p className="text-slate-600">Títulos: {titulosMarcados.length}</p>
+                    </div>
+                  </div>
+
+                  {/* Título do Documento */}
+                  <div className="text-center bg-slate-900 text-white py-1.5 px-4 rounded mb-5 font-black uppercase tracking-wider text-xs">
+                    BORDERÔ DE REMESSA & COBRANÇA DE TÍTULOS
+                  </div>
+
+                  {observacoes && (
+                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded mb-4 text-[10px] font-mono">
+                      <b className="text-amber-900 uppercase">Instruções / Observações:</b>
+                      <p className="text-amber-800 mt-0.5">{observacoes}</p>
+                    </div>
+                  )}
+
+                  {/* Tabela de Títulos Inclusos */}
+                  <table className="w-full text-left text-[11px] border-collapse border border-slate-300 mb-6">
+                    <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300 uppercase text-[10px] font-mono">
+                      <tr>
+                        <th className="p-2 border-r border-slate-300">Item</th>
+                        <th className="p-2 border-r border-slate-300">Devedor / Sacado</th>
+                        <th className="p-2 border-r border-slate-300">Documento / CPF</th>
+                        <th className="p-2 border-r border-slate-300">Nº Título</th>
+                        <th className="p-2 border-r border-slate-300 text-center">Vencimento</th>
+                        <th className="p-2 text-right">Valor Nominal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {titulosMarcados.map((t, index) => (
+                        <tr key={t.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                          <td className="p-2 font-mono text-center border-r border-slate-300">{index + 1}</td>
+                          <td className="p-2 font-bold text-slate-900 border-r border-slate-300">{t.cliente}</td>
+                          <td className="p-2 font-mono text-slate-600 border-r border-slate-300">{t.documentoCliente || '-'}</td>
+                          <td className="p-2 font-mono font-bold text-slate-800 border-r border-slate-300">{t.numero}</td>
+                          <td className="p-2 font-mono text-center border-r border-slate-300">{formatDateBR(t.vencimento)}</td>
+                          <td className="p-2 font-mono text-right font-bold text-slate-900">{formatCurrency(t.valor)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-400">
+                      <tr>
+                        <td colSpan={5} className="p-2.5 text-right uppercase text-[10px] border-r border-slate-300">
+                          Total Geral do Borderô:
+                        </td>
+                        <td className="p-2.5 text-right font-mono text-xs text-red-700">
+                          {formatCurrency(totalBorderô)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+
+                  {/* Instrução de PIX da Empresa */}
+                  {empresaConfig.chavePix && (
+                    <div className="p-3 bg-slate-50 border border-slate-300 rounded mb-6 text-[10px] font-mono">
+                      <p className="font-bold text-slate-900 uppercase">Conta para Depósito / Liquidação:</p>
+                      <p><b>Chave PIX:</b> {empresaConfig.chavePix}</p>
+                      <p><b>Favorecido:</b> {empresaConfig.favorecidoPix || empresaConfig.razaoSocial}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Termo de Envio e Assinaturas */}
+                <div className="pt-6 border-t border-slate-300 mt-auto">
+                  <p className="text-[9px] text-slate-500 text-center mb-8 font-mono">
+                    Declaramos para os devidos fins a entrega e o encaminhamento da relação de títulos acima descrita para cobrança.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-12 text-center text-[10px]">
+                    <div>
+                      <div className="border-t border-slate-900 pt-1.5 font-bold uppercase text-slate-900">
+                        {empresaConfig.razaoSocial || 'Responsável Financeiro'}
+                      </div>
+                      <div className="text-[9px] text-slate-500 font-mono">Emitente / Cedente</div>
+                    </div>
+
+                    <div>
+                      <div className="border-t border-slate-900 pt-1.5 font-bold uppercase text-slate-900">
+                        Agente Cobrador / Instituição
+                      </div>
+                      <div className="text-[9px] text-slate-500 font-mono">Protocolo de Recebimento</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
           </div>
-          <div className="flex items-end gap-3 h-full pb-0.5 mt-4 md:mt-0">
-            <button 
-              onClick={onClose} 
-              className="px-5 py-2 text-sm font-medium text-zinc-300 bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700/50 rounded-md transition-all focus:outline-none"
-            >
-              Cancelar
-            </button>
-            <button 
-              onClick={handleGerar} 
-              className="px-5 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-md transition-all shadow-[0_0_15px_rgba(37,99,235,0.2)] focus:outline-none"
-            >
-              Gerar Borderô
-            </button>
-          </div>
-        </div>
+        )}
 
       </div>
     </div>
