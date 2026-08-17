@@ -194,7 +194,7 @@ function MainAppContent() {
         />
         
         {/* Workspace Base: Dashboard / Gráficos Direto no Centro */}
-        <div className="flex-1 p-3 md:p-4 overflow-hidden relative z-0">
+        <div className={`flex-1 p-3 md:p-4 overflow-hidden relative z-0 ${currentView !== 'home' ? 'no-print' : ''}`}>
           <DashboardView 
             onNavigate={handleNavigate}
             onOpenBordero={() => { closeAllModals(); setOpenBorderoModal(true); }}

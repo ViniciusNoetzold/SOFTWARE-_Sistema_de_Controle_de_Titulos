@@ -25,7 +25,7 @@ export function calcularSaldoDevedor(titulo: Titulo, dataAtual: string = '2026-0
 }
 
 export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value || 0);
 }
 
 export function parseInputNumber(val: string): number {
@@ -40,6 +40,7 @@ export function parseInputNumber(val: string): number {
 }
 
 export function formatDateBR(dateString: string): string {
+  if (!dateString) return '-';
   const [year, month, day] = dateString.split('-');
   if (!day) return dateString; // fallback
   return `${day}/${month}/${year}`;
