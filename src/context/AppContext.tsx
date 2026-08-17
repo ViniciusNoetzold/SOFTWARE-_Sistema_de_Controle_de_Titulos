@@ -1,6 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Entidade, Titulo, MovimentacaoTitulo, EmpresaConfig, Usuario, PerfilUsuario } from '../types';
+import { Entidade, Titulo, MovimentacaoTitulo, EmpresaConfig, Usuario, PerfilUsuario, AssinaturaLicenca, LicencaStatus } from '../types';
 import { mockEntidades, mockTitulos, mockMovimentacoes } from '../lib/mockData';
+
+export const defaultAssinaturaLicenca: AssinaturaLicenca = {
+  ativa: true,
+  diaVencimento: 15,
+  dataValidadeISO: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  valorMensalidade: 180.00,
+  whatsappSuporte: '5511999999999',
+  bloqueioManual: false
+};
 
 export interface ChequeItem {
   id: string;
@@ -139,8 +148,12 @@ interface AppContextType {
   updateChequeStatus: (id: string, status: 'EM ABERTO' | 'COMPENSADO' | 'DEVOLVIDO') => void;
   removeCheque: (id: string) => void;
 
-  limparBaseCincoAnos: () => void;
-  addLog: (acao: string, detalhes: string) => void;
+  // Assinatura & Bloqueio do Sistema (Menu Exclusivo Mestre 000)
+  assinaturaLicenca: AssinaturaLicenca;
+  licencaStatus: LicencaStatus;
+  updateAssinaturaLicenca: (data: Partial<AssinaturaLicenca>) => void;
+  renovarLicenca: (diasAdicionais?: number) => void;
+  bloquearSistemaManual: (bloquear: boolean) => void;
 }
 
 const initialCheques: ChequeItem[] = [
@@ -289,9 +302,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : defaultEmpresaConfig;
   });
 
+  // Estado da Assinatura e Licenciamento (Controlado pelo Mestre 000)
+  const [assinaturaLicenca, setAssinaturaLicenca] = useState<AssinaturaLicenca>(() => {
+    const saved = localStorage.getItem('mezzold_assinatura_licenca');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return defaultAssinaturaLicenca;
+      }
+    }
+    return defaultAssinaturaLicenca;
+  });
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Efeitos de Persistência no LocalStorage
+  useEffect(() => {
+    localStorage.setItem('mezzold_assinatura_licenca', JSON.stringify(assinaturaLicenca));
+  }, [assinaturaLicenca]);
   useEffect(() => {
     localStorage.setItem('mezzold_usuarios', JSON.stringify(usuarios));
   }, [usuarios]);
@@ -625,6 +654,98 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`Limpeza concluída: ${removidosCount} registros antigos arquivados.`);
   };
 
+  // Gestão de Licença e Assinatura
+  const updateAssinaturaLicenca = (data: Partial<AssinaturaLicenca>) => {
+    setAssinaturaLicenca(prev => {
+      const updated = { ...prev, ...data };
+      return updated;
+    });
+    addLog('Gestão de Licença', 'Atualizou configurações de assinatura/mensalidade da licença');
+    showToast('Configurações de assinatura atualizadas!');
+  };
+
+  // Regra de Renovação Inteligente
+  const renovarLicenca = (diasAdicionais?: number) => {
+    setAssinaturaLicenca(prev => {
+      const now = new Date();
+      const currentExpiry = new Date(prev.dataValidadeISO);
+      
+      let baseDate: Date;
+      let bonusDays = 0;
+
+      if (currentExpiry.getTime() > now.getTime()) {
+        // Pagamento Adiantado: soma 30 dias à validade atual + dias bônus
+        bonusDays = Math.ceil((currentExpiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        baseDate = new Date(currentExpiry);
+      } else {
+        // Pagamento Atrasado / Expirado: reinicia 30 dias a partir de hoje
+        baseDate = new Date(now);
+      }
+
+      // Adiciona 1 mês (30 dias padrão ou diasAdicionais)
+      const diasParaAdicionar = diasAdicionais !== undefined ? diasAdicionais : 30;
+      baseDate.setDate(baseDate.getDate() + diasParaAdicionar);
+
+      // Seta para 23:59:59 do dia de vencimento
+      baseDate.setHours(23, 59, 59, 999);
+
+      const updated: AssinaturaLicenca = {
+        ...prev,
+        ativa: true,
+        bloqueioManual: false,
+        dataValidadeISO: baseDate.toISOString(),
+        ultimoPagamentoISO: now.toISOString(),
+        diaVencimento: baseDate.getDate()
+      };
+
+      const msgBonus = bonusDays > 0 ? ` (+ ${bonusDays} dias bônus por pagamento antecipado)` : '';
+      addLog('Renovação de Licença', `Licença renovada até ${baseDate.toLocaleDateString('pt-BR')}${msgBonus}`);
+      showToast(`Licença renovada com sucesso até ${baseDate.toLocaleDateString('pt-BR')}!`);
+
+      return updated;
+    });
+  };
+
+  const bloquearSistemaManual = (bloquear: boolean) => {
+    setAssinaturaLicenca(prev => ({
+      ...prev,
+      bloqueioManual: bloquear
+    }));
+    addLog('Segurança de Licença', `${bloquear ? 'Bloqueou' : 'Desbloqueou'} o sistema manualmente`);
+    showToast(`Sistema ${bloquear ? 'BLOQUEADO' : 'LIBERADO'} com sucesso.`);
+  };
+
+  // Cálculo Dinâmico do Status da Licença
+  const getLicencaStatus = (): LicencaStatus => {
+    const now = new Date();
+    const expiry = new Date(assinaturaLicenca.dataValidadeISO);
+    const diffMs = expiry.getTime() - now.getTime();
+    const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    
+    const expirada = !assinaturaLicenca.ativa || assinaturaLicenca.bloqueioManual || diffMs <= 0;
+    const alertaAtivo = !expirada && diasRestantes <= 3;
+    const dataVencimentoFormatada = expiry.toLocaleDateString('pt-BR');
+
+    let mensagem = 'Assinatura ativa e regular.';
+    if (assinaturaLicenca.bloqueioManual) {
+      mensagem = 'Sistema bloqueado administrativamente pelo suporte mestre.';
+    } else if (expirada) {
+      mensagem = `Assinatura vencida em ${dataVencimentoFormatada} às 23:59. Acesso suspenso por pendência financeira.`;
+    } else if (alertaAtivo) {
+      mensagem = `ATENÇÃO: Sua assinatura vence em ${diasRestantes} dia(s) (${dataVencimentoFormatada}). Regularize para evitar bloqueio.`;
+    }
+
+    return {
+      diasRestantes: Math.max(0, diasRestantes),
+      expirada,
+      alertaAtivo,
+      dataVencimentoFormatada,
+      mensagem
+    };
+  };
+
+  const licencaStatus = getLicencaStatus();
+
   return (
     <AppContext.Provider value={{
       currentUser,
@@ -657,6 +778,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       removeCheque,
       limparBaseCincoAnos,
       addLog,
+      assinaturaLicenca,
+      licencaStatus,
+      updateAssinaturaLicenca,
+      renovarLicenca,
+      bloquearSistemaManual,
     }}>
       {children}
 

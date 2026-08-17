@@ -15,6 +15,7 @@ interface UnifiedNavbarProps {
   onOpenDesconto: () => void;
   onOpenDescCedente: () => void;
   onStopProcess: () => void;
+  onOpenMasterLicenca?: () => void;
 }
 
 export function UnifiedNavbar({
@@ -26,6 +27,7 @@ export function UnifiedNavbar({
   onOpenDesconto,
   onOpenDescCedente,
   onStopProcess,
+  onOpenMasterLicenca,
 }: UnifiedNavbarProps) {
   const { currentUser, logout } = useAppContext();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -151,6 +153,9 @@ export function UnifiedNavbar({
         { label: 'Configurações Globais da Empresa', view: 'sistema', icon: Settings, action: () => onNavigate('sistema') },
         ...(currentUser?.perfil === 'ADMIN' ? [
           { label: 'Usuários & Permissões (CRUD Admin)', view: 'usuarios', icon: Users, action: () => onNavigate('usuarios') }
+        ] : []),
+        ...(currentUser?.username === '000' && onOpenMasterLicenca ? [
+          { label: '👑 Licença & Cobrança (Mestre 000)', view: '', icon: Settings, action: onOpenMasterLicenca }
         ] : []),
         { label: 'Sair da Aplicação', view: '', icon: LogOut, action: logout }
       ]

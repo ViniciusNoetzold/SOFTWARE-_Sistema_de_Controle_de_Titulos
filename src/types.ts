@@ -31,6 +31,24 @@ export interface EmpresaConfig {
   favorecidoPix?: string;
 }
 
+export interface AssinaturaLicenca {
+  ativa: boolean;
+  diaVencimento: number; // Ex: dia 15
+  dataValidadeISO: string; // Ex: 2026-09-15T23:59:59.999Z
+  ultimoPagamentoISO?: string;
+  valorMensalidade: number; // Ex: 150.00
+  whatsappSuporte: string; // Ex: 5511999999999
+  bloqueioManual: boolean; // Trava forçada pelo mestre
+}
+
+export interface LicencaStatus {
+  diasRestantes: number;
+  expirada: boolean;
+  alertaAtivo: boolean; // 3 dias antes
+  dataVencimentoFormatada: string;
+  mensagem: string;
+}
+
 export interface Entidade {
   id: string;
   nome: string; // Nome Completo (PF) ou Razão Social (PJ)

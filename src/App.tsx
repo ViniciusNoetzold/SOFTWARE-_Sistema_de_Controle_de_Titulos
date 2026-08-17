@@ -33,6 +33,10 @@ import { LimpezaBaseView } from './components/views/LimpezaBaseView';
 import { LancamentoTitulosView } from './components/views/LancamentoTitulosView';
 import { RelatoriosView } from './components/views/RelatoriosView';
 
+// Licença & Bloqueio
+import { LicencaMasterModal } from './components/modals/LicencaMasterModal';
+import { SistemaBloqueadoOverlay } from './components/SistemaBloqueadoOverlay';
+
 function MainAppContent() {
   const { currentUser, toastMessage, showToast } = useAppContext();
 
@@ -40,6 +44,7 @@ function MainAppContent() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isReportViewerOpen, setIsReportViewerOpen] = useState(false);
   const [reportFilterData, setReportFilterData] = useState<any>(null);
+  const [isMasterLicencaOpen, setIsMasterLicencaOpen] = useState(false);
   
   // Toolbar Modals State
   const [openBorderoModal, setOpenBorderoModal] = useState(false);
@@ -178,6 +183,7 @@ function MainAppContent() {
         onOpenDesconto={() => { closeAllModals(); setOpenDescontoModal(true); }}
         onOpenDescCedente={() => { closeAllModals(); setOpenDescCedenteModal(true); }}
         onStopProcess={() => { closeAllModals(); showToast('Processos interrompidos pelo usuário com STOP'); }}
+        onOpenMasterLicenca={() => { closeAllModals(); setIsMasterLicencaOpen(true); }}
       />
 
       <main className="flex-1 relative bg-[#0e1014] overflow-hidden flex flex-col z-0">
@@ -205,7 +211,7 @@ function MainAppContent() {
         {/* Active Floating Internal Window (Abre por cima do Dashboard) */}
         {renderActiveWindow()}
 
-        {/* Overlays */}
+        {/* Overlays de Ferramentas & Relatórios */}
         <ReportModal 
           isOpen={isReportModalOpen} 
           onClose={() => setIsReportModalOpen(false)}
@@ -221,6 +227,15 @@ function MainAppContent() {
         <DescontoModal isOpen={openDescontoModal} onClose={() => setOpenDescontoModal(false)} />
         <DescCedenteModal isOpen={openDescCedenteModal} onClose={() => setOpenDescCedenteModal(false)} />
 
+        {/* Modal de Gestão da Licença (Mestre 000) */}
+        <LicencaMasterModal 
+          isOpen={isMasterLicencaOpen} 
+          onClose={() => setIsMasterLicencaOpen(false)} 
+        />
+
+        {/* Bloqueio do Sistema Caso Expirado ou Bloqueado Manualmente */}
+        <SistemaBloqueadoOverlay />
+
         {/* Toast Component */}
         {toastMessage && (
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300 pointer-events-none">
@@ -232,7 +247,7 @@ function MainAppContent() {
         )}
       </main>
 
-      <StatusBar />
+      <StatusBar onOpenMasterLicenca={() => setIsMasterLicencaOpen(true)} />
     </div>
   );
 }
