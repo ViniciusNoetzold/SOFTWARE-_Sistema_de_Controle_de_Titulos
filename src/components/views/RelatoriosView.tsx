@@ -1,22 +1,31 @@
 import { useState } from 'react';
 import { 
   FileText, Calendar, Users, AlertTriangle, Wallet, 
-  Printer, Download, Filter, Search, Building2, CheckCircle2
+  Printer, Download, Filter, Search, Building2, CheckCircle2,
+  CheckSquare, Square, ChevronRight, ArrowLeft, UserCheck, CreditCard, QrCode
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { formatCurrency, formatDateBR, isTituloVencido, calcularSaldoDevedor } from '../../lib/utils';
+import { Entidade, Titulo } from '../../types';
 
 export function RelatoriosView() {
   const { titulos, entidades, cheques, empresaConfig, currentUser } = useAppContext();
 
-  // Tipo de Relatório Ativo
-  const [activeReport, setActiveReport] = useState<'GERAL' | 'MES' | 'CLIENTE' | 'INADIMPLENCIA' | 'CHEQUES'>('GERAL');
+  // Tipo de Relatório Ativo no Topo
+  const [activeReport, setActiveReport] = useState<'GERAL' | 'MES' | 'CLIENTE' | 'INADIMPLENCIA' | 'CHEQUES'>('CLIENTE');
 
-  // Filtros
+  // Filtros Globais
   const [selectedEntidade, setSelectedEntidade] = useState<string>('TODOS');
   const [selectedTipo, setSelectedTipo] = useState<'TODOS' | 'RECEBER' | 'PAGAR'>('TODOS');
   const [selectedStatus, setSelectedStatus] = useState<'TODOS' | 'EM_ABERTO' | 'PAGO' | 'VENCIDO'>('TODOS');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // SELEÇÃO ESPECÍFICA DE CLIENTE (Drill-Down / Ficha Individual)
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedClientSubReport, setSelectedClientSubReport] = useState<'TODOS_TITULOS' | 'PENDENTES' | 'QUITADOS'>('TODOS_TITULOS');
+
+  // Cliente Ativo Selecionado (Objeto)
+  const activeClienteObj: Entidade | undefined = entidades.find(e => e.id === selectedClientId);
 
   // 1. Relatório Geral Filtrado
   const filteredTitulos = titulos.filter(t => {
@@ -39,7 +48,6 @@ export function RelatoriosView() {
     return true;
   });
 
-  // Totais do Relatório Geral
   const totalOriginal = filteredTitulos.reduce((acc, t) => acc + t.valor_original, 0);
   const totalPago = filteredTitulos.reduce((acc, t) => acc + t.valor_pago, 0);
   const totalSaldo = filteredTitulos.reduce((acc, t) => acc + t.saldo_devedor, 0);
@@ -95,6 +103,26 @@ export function RelatoriosView() {
   const totalClientePago = relatorioPorCliente.reduce((s, c) => s + c.totalPago, 0);
   const totalClienteSaldo = relatorioPorCliente.reduce((s, c) => s + c.totalSaldo, 0);
 
+  // Títulos do Cliente Selecionado Filtrados pelo Sub-Relatório Escolhido
+  const titulosDoClienteSelecionado = titulos.filter(t => {
+    if (!selectedClientId) return false;
+    if (t.id_entidade !== selectedClientId) return false;
+
+    const vencido = isTituloVencido(t);
+
+    if (selectedClientSubReport === 'PENDENTES') {
+      return t.status !== 'PAGO';
+    }
+    if (selectedClientSubReport === 'QUITADOS') {
+      return t.status === 'PAGO';
+    }
+    return true; // TODOS_TITULOS
+  });
+
+  const totalClienteSelOriginal = titulosDoClienteSelecionado.reduce((s, t) => s + t.valor_original, 0);
+  const totalClienteSelPago = titulosDoClienteSelecionado.reduce((s, t) => s + t.valor_pago, 0);
+  const totalClienteSelSaldo = titulosDoClienteSelecionado.reduce((s, t) => s + t.saldo_devedor, 0);
+
   // 4. Inadimplência Aging List
   const titulosInadimplentes = titulos.filter(t => isTituloVencido(t));
   const totalInadimplente = titulosInadimplentes.reduce((s, t) => s + t.saldo_devedor, 0);
@@ -109,9 +137,19 @@ export function RelatoriosView() {
     window.print();
   };
 
+  const handleSelectClient = (clientId: string) => {
+    if (selectedClientId === clientId) {
+      setSelectedClientId(null); // toggle desmarca
+    } else {
+      setSelectedClientId(clientId);
+    }
+  };
+
   const handleExportCSV = () => {
     let csvContent = "data:text/csv;charset=utf-8,Documento;Cliente;Tipo;Valor Original;Valor Pago;Saldo Devedor;Vencimento;Status\n";
-    filteredTitulos.forEach(t => {
+    const dataToExport = selectedClientId ? titulosDoClienteSelecionado : filteredTitulos;
+
+    dataToExport.forEach(t => {
       const ent = entidades.find(e => e.id === t.id_entidade);
       csvContent += `${t.numero_documento};"${ent?.nome || ''}";${t.tipo_titulo};${t.valor_original};${t.valor_pago};${t.saldo_devedor};${t.data_vencimento};${t.status}\n`;
     });
@@ -119,7 +157,7 @@ export function RelatoriosView() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `relatorio_${activeReport.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `relatorio_${selectedClientId ? 'cliente_individual' : activeReport.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -127,6 +165,12 @@ export function RelatoriosView() {
 
   // Título Dinâmico do Relatório
   const getReportTitle = () => {
+    if (activeReport === 'CLIENTE' && selectedClientId && activeClienteObj) {
+      if (selectedClientSubReport === 'PENDENTES') return `EXTRATO DE COBRANÇA & TÍTULOS PENDENTES - ${activeClienteObj.nome.toUpperCase()}`;
+      if (selectedClientSubReport === 'QUITADOS') return `DEMONSTRATIVO DE QUITAÇÕES & PAGAMENTOS - ${activeClienteObj.nome.toUpperCase()}`;
+      return `FICHA FINANCEIRA & POSIÇÃO INTEGRAL - ${activeClienteObj.nome.toUpperCase()}`;
+    }
+
     switch (activeReport) {
       case 'GERAL': return 'RELATÓRIO GERAL DE TÍTULOS E CARTEIRA FINANCEIRA';
       case 'MES': return 'DEMONSTRATIVO MENSAL DE FLUXO DE CAIXA (DRE SINTÉTICO)';
@@ -150,7 +194,7 @@ export function RelatoriosView() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 shrink-0">
           
           <button
-            onClick={() => setActiveReport('GERAL')}
+            onClick={() => { setActiveReport('GERAL'); setSelectedClientId(null); }}
             className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
               activeReport === 'GERAL'
                 ? 'bg-red-600 border-red-500 text-white shadow-lg'
@@ -165,7 +209,7 @@ export function RelatoriosView() {
           </button>
 
           <button
-            onClick={() => setActiveReport('MES')}
+            onClick={() => { setActiveReport('MES'); setSelectedClientId(null); }}
             className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
               activeReport === 'MES'
                 ? 'bg-red-600 border-red-500 text-white shadow-lg'
@@ -190,12 +234,12 @@ export function RelatoriosView() {
             <Users size={18} className={activeReport === 'CLIENTE' ? 'text-white' : 'text-blue-400'} />
             <div className="text-left">
               <h4 className="text-xs font-bold leading-none">Por Cliente</h4>
-              <span className="text-[9px] opacity-80">Ranking e Posição</span>
+              <span className="text-[9px] opacity-80">Fichas & Extratos Individuais</span>
             </div>
           </button>
 
           <button
-            onClick={() => setActiveReport('INADIMPLENCIA')}
+            onClick={() => { setActiveReport('INADIMPLENCIA'); setSelectedClientId(null); }}
             className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
               activeReport === 'INADIMPLENCIA'
                 ? 'bg-red-600 border-red-500 text-white shadow-lg'
@@ -210,7 +254,7 @@ export function RelatoriosView() {
           </button>
 
           <button
-            onClick={() => setActiveReport('CHEQUES')}
+            onClick={() => { setActiveReport('CHEQUES'); setSelectedClientId(null); }}
             className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
               activeReport === 'CHEQUES'
                 ? 'bg-red-600 border-red-500 text-white shadow-lg'
@@ -230,52 +274,94 @@ export function RelatoriosView() {
         <div className="flex items-center justify-between bg-[#161922] border border-[#2b3242] rounded-xl px-3 py-2 shrink-0">
           
           <div className="flex items-center gap-2 text-xs flex-wrap">
-            <div className="flex items-center gap-1.5 bg-[#11131a] px-2.5 py-1 rounded-lg border border-[#2b3242]">
-              <Filter size={13} className="text-slate-400" />
-              <span className="text-[10px] font-mono uppercase text-slate-400 font-bold">Filtros:</span>
+            
+            {/* Se estiver no modo Por Cliente e houver cliente selecionado */}
+            {activeReport === 'CLIENTE' && selectedClientId ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelectedClientId(null)}
+                  className="flex items-center gap-1 bg-[#1a1e2c] hover:bg-[#252b3e] text-slate-200 border border-[#2b3242] px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Ver Todos os Clientes</span>
+                </button>
 
-              {/* Select Cliente */}
-              <select
-                value={selectedEntidade}
-                onChange={e => setSelectedEntidade(e.target.value)}
-                className="bg-transparent text-slate-200 text-xs font-medium focus:outline-none cursor-pointer max-w-[150px]"
-              >
-                <option value="TODOS" className="bg-[#11131a]">Todos Clientes</option>
-                {entidades.map(e => (
-                  <option key={e.id} value={e.id} className="bg-[#11131a]">{e.nome}</option>
-                ))}
-              </select>
+                <div className="flex items-center gap-1.5 bg-[#11131a] px-3 py-1 rounded-lg border border-red-500/40 text-slate-100 font-bold">
+                  <UserCheck size={14} className="text-red-400" />
+                  <span>{activeClienteObj?.nome}</span>
+                </div>
 
-              {/* Select Tipo */}
-              <select
-                value={selectedTipo}
-                onChange={e => setSelectedTipo(e.target.value as any)}
-                className="bg-transparent text-slate-200 text-xs font-medium focus:outline-none cursor-pointer border-l border-[#2b3242] pl-2"
-              >
-                <option value="TODOS" className="bg-[#11131a]">Todos Tipos</option>
-                <option value="RECEBER" className="bg-[#11131a]">Recebimentos</option>
-                <option value="PAGAR" className="bg-[#11131a]">Pagamentos</option>
-              </select>
+                {/* Seletor do Tipo de Relatório do Cliente */}
+                <div className="flex items-center bg-[#11131a] p-0.5 rounded-lg border border-[#2b3242] text-[11px] font-mono font-bold">
+                  <button
+                    onClick={() => setSelectedClientSubReport('TODOS_TITULOS')}
+                    className={`px-2.5 py-0.5 rounded ${selectedClientSubReport === 'TODOS_TITULOS' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    Extrato Integral
+                  </button>
+                  <button
+                    onClick={() => setSelectedClientSubReport('PENDENTES')}
+                    className={`px-2.5 py-0.5 rounded ${selectedClientSubReport === 'PENDENTES' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    Apenas Pendências
+                  </button>
+                  <button
+                    onClick={() => setSelectedClientSubReport('QUITADOS')}
+                    className={`px-2.5 py-0.5 rounded ${selectedClientSubReport === 'QUITADOS' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    Quitados
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Filtros Gerais Padrão */
+              <div className="flex items-center gap-1.5 bg-[#11131a] px-2.5 py-1 rounded-lg border border-[#2b3242]">
+                <Filter size={13} className="text-slate-400" />
+                <span className="text-[10px] font-mono uppercase text-slate-400 font-bold">Filtros:</span>
 
-              {/* Select Status */}
-              <select
-                value={selectedStatus}
-                onChange={e => setSelectedStatus(e.target.value as any)}
-                className="bg-transparent text-slate-200 text-xs font-medium focus:outline-none cursor-pointer border-l border-[#2b3242] pl-2"
-              >
-                <option value="TODOS" className="bg-[#11131a]">Todos Status</option>
-                <option value="EM_ABERTO" className="bg-[#11131a]">Em Aberto</option>
-                <option value="VENCIDO" className="bg-[#11131a]">Vencidos</option>
-                <option value="PAGO" className="bg-[#11131a]">Quitados</option>
-              </select>
-            </div>
+                {/* Select Cliente */}
+                <select
+                  value={selectedEntidade}
+                  onChange={e => setSelectedEntidade(e.target.value)}
+                  className="bg-transparent text-slate-200 text-xs font-medium focus:outline-none cursor-pointer max-w-[150px]"
+                >
+                  <option value="TODOS" className="bg-[#11131a]">Todos Clientes</option>
+                  {entidades.map(e => (
+                    <option key={e.id} value={e.id} className="bg-[#11131a]">{e.nome}</option>
+                  ))}
+                </select>
+
+                {/* Select Tipo */}
+                <select
+                  value={selectedTipo}
+                  onChange={e => setSelectedTipo(e.target.value as any)}
+                  className="bg-transparent text-slate-200 text-xs font-medium focus:outline-none cursor-pointer border-l border-[#2b3242] pl-2"
+                >
+                  <option value="TODOS" className="bg-[#11131a]">Todos Tipos</option>
+                  <option value="RECEBER" className="bg-[#11131a]">Recebimentos</option>
+                  <option value="PAGAR" className="bg-[#11131a]">Pagamentos</option>
+                </select>
+
+                {/* Select Status */}
+                <select
+                  value={selectedStatus}
+                  onChange={e => setSelectedStatus(e.target.value as any)}
+                  className="bg-transparent text-slate-200 text-xs font-medium focus:outline-none cursor-pointer border-l border-[#2b3242] pl-2"
+                >
+                  <option value="TODOS" className="bg-[#11131a]">Todos Status</option>
+                  <option value="EM_ABERTO" className="bg-[#11131a]">Em Aberto</option>
+                  <option value="VENCIDO" className="bg-[#11131a]">Vencidos</option>
+                  <option value="PAGO" className="bg-[#11131a]">Quitados</option>
+                </select>
+              </div>
+            )}
 
             {/* Busca */}
             <div className="relative w-48">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
-                placeholder="Buscar documento..."
+                placeholder="Buscar documento ou cliente..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="w-full bg-[#11131a] border border-[#2b3242] rounded-lg pl-7 pr-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-red-500 font-mono"
@@ -297,10 +383,10 @@ export function RelatoriosView() {
             <button
               onClick={handlePrint}
               className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-[0_0_15px_rgba(220,38,38,0.35)]"
-              title="Imprimir ou Salvar em PDF"
+              title={selectedClientId ? `Imprimir Ficha Individual de ${activeClienteObj?.nome}` : "Imprimir ou Salvar em PDF"}
             >
               <Printer size={14} />
-              <span>Imprimir / Salvar PDF</span>
+              <span>{selectedClientId ? 'Imprimir Ficha do Cliente' : 'Imprimir / Salvar PDF'}</span>
             </button>
           </div>
 
@@ -309,6 +395,187 @@ export function RelatoriosView() {
         {/* Visualização da Tabela na Tela Escura */}
         <div className="bg-[#161922] border border-[#2b3242] rounded-2xl overflow-hidden flex-1 flex flex-col shadow-xl">
           
+          {/* =========================================================================
+              ABA 3: POR CLIENTE (COM SELEÇÃO E VISUALIZAÇÃO INDIVIDUAL DETALHADA)
+              ========================================================================= */}
+          {activeReport === 'CLIENTE' && (
+            selectedClientId && activeClienteObj ? (
+              /* SUB-TELA: FICHA INDIVIDUAL DO CLIENTE SELECIONADO */
+              <div className="flex-1 flex flex-col overflow-hidden animate-in fade-in duration-200">
+                
+                {/* Header de Resumo do Cliente Selecionado */}
+                <div className="p-4 bg-[#111319] border-b border-[#2b3242] flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-red-600/15 border border-red-500/30 flex items-center justify-center text-red-500 font-bold">
+                      {activeClienteObj.nome.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                        <span>{activeClienteObj.nome}</span>
+                        <span className="text-[10px] font-mono bg-[#1a1e2c] text-slate-400 px-2 py-0.5 rounded border border-[#2b3242]">
+                          CNPJ: {activeClienteObj.documento}
+                        </span>
+                      </h3>
+                      <p className="text-xs text-slate-400 font-mono mt-0.5">
+                        {activeClienteObj.endereco || 'Endereço Comercial Cadastrado'} | Tel: {activeClienteObj.telefone || '(11) 99999-9999'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-6 font-mono text-xs">
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 block uppercase">Volume Original</span>
+                      <span className="font-bold text-slate-100">R$ {formatCurrency(totalClienteSelOriginal)}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-emerald-400 block uppercase">Total Quitado</span>
+                      <span className="font-bold text-emerald-400">R$ {formatCurrency(totalClienteSelPago)}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-red-400 block uppercase">Saldo Pendente</span>
+                      <span className="font-bold text-red-500 text-sm">R$ {formatCurrency(totalClienteSelSaldo)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabela de Títulos deste Cliente */}
+                <div className="overflow-auto flex-1">
+                  <table className="w-full text-left text-xs text-slate-300 border-collapse">
+                    <thead className="text-[11px] uppercase bg-[#111319] text-slate-400 border-b border-[#2b3242] sticky top-0 font-mono">
+                      <tr>
+                        <th className="px-4 py-3 font-semibold">Documento / N°</th>
+                        <th className="px-4 py-3 font-semibold">Tipo</th>
+                        <th className="px-4 py-3 font-semibold text-right">Valor Original</th>
+                        <th className="px-4 py-3 font-semibold text-right">Valor Pago</th>
+                        <th className="px-4 py-3 font-semibold text-right">Saldo Devedor</th>
+                        <th className="px-4 py-3 font-semibold text-center">Vencimento</th>
+                        <th className="px-4 py-3 font-semibold text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#232836]">
+                      {titulosDoClienteSelecionado.map(t => {
+                        const vencido = isTituloVencido(t);
+                        return (
+                          <tr key={t.id} className="hover:bg-[#1f2432]/70 transition-colors">
+                            <td className="px-4 py-2.5 font-mono font-bold text-slate-100">{t.numero_documento}</td>
+                            <td className="px-4 py-2.5 font-mono text-[10px]">
+                              <span className={`px-2 py-0.5 rounded font-bold ${t.tipo_titulo === 'RECEBER' ? 'bg-emerald-950 text-emerald-400' : 'bg-blue-950 text-blue-400'}`}>
+                                {t.tipo_titulo}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2.5 font-mono text-right font-bold text-slate-100">R$ {formatCurrency(t.valor_original)}</td>
+                            <td className="px-4 py-2.5 font-mono text-right text-emerald-400 font-bold">R$ {formatCurrency(t.valor_pago)}</td>
+                            <td className="px-4 py-2.5 font-mono text-right text-red-400 font-bold">R$ {formatCurrency(t.saldo_devedor)}</td>
+                            <td className="px-4 py-2.5 font-mono text-center">{formatDateBR(t.data_vencimento)}</td>
+                            <td className="px-4 py-2.5 text-center">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${
+                                t.status === 'PAGO' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
+                                vencido ? 'bg-red-500/20 text-red-300 border border-red-500/40' :
+                                'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                              }`}>
+                                {t.status === 'PAGO' ? 'PAGO' : vencido ? 'VENCIDO' : 'EM ABERTO'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {titulosDoClienteSelecionado.length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="px-6 py-12 text-center text-slate-500">Nenhum título encontrado com o filtro selecionado ({selectedClientSubReport}).</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Footer da Ficha Individual */}
+                <div className="px-5 py-2.5 bg-[#111319] border-t border-[#2b3242] flex items-center justify-between font-mono text-xs text-slate-300 shrink-0">
+                  <span>Extrato de <b>{titulosDoClienteSelecionado.length}</b> títulos de {activeClienteObj.nome}</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handlePrint}
+                      className="bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-1 rounded-lg text-xs flex items-center gap-1.5 shadow-md"
+                    >
+                      <Printer size={13} /> Imprimir Ficha Individual
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            ) : (
+              /* LISTAGEM GERAL COMPARATIVA DE CLIENTES COM SELEÇÃO */
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="overflow-auto flex-1">
+                  <table className="w-full text-left text-xs text-slate-300 border-collapse">
+                    <thead className="text-[11px] uppercase bg-[#111319] text-slate-400 border-b border-[#2b3242] sticky top-0 font-mono">
+                      <tr>
+                        <th className="px-3 py-3 font-semibold text-center w-10">Marcar</th>
+                        <th className="px-5 py-3 font-semibold">Cliente / Razão Social</th>
+                        <th className="px-5 py-3 font-semibold text-center">N° Títulos</th>
+                        <th className="px-5 py-3 font-semibold text-right">Volume Total</th>
+                        <th className="px-5 py-3 font-semibold text-right">Total Liquidado</th>
+                        <th className="px-5 py-3 font-semibold text-right">Saldo Devedor Ativo</th>
+                        <th className="px-5 py-3 font-semibold text-center">Situação</th>
+                        <th className="px-5 py-3 font-semibold text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#232836]">
+                      {relatorioPorCliente.map((c) => {
+                        const isSelected = selectedClientId === c.entidade.id;
+
+                        return (
+                          <tr 
+                            key={c.entidade.id} 
+                            onClick={() => handleSelectClient(c.entidade.id)}
+                            className={`cursor-pointer transition-colors ${
+                              isSelected ? 'bg-red-950/40 border-l-4 border-l-red-500' : 'hover:bg-[#1f2432]/70'
+                            }`}
+                          >
+                            <td className="px-3 py-3 text-center" onClick={(e) => { e.stopPropagation(); handleSelectClient(c.entidade.id); }}>
+                              {isSelected ? (
+                                <CheckSquare size={16} className="text-red-500 inline" />
+                              ) : (
+                                <Square size={16} className="text-slate-500 hover:text-slate-300 inline" />
+                              )}
+                            </td>
+                            <td className="px-5 py-3 font-bold text-slate-100">
+                              <span className="flex items-center gap-1.5">
+                                <span>{c.entidade.nome}</span>
+                                {isSelected && <span className="text-[9px] bg-red-600 text-white px-1.5 py-0.2 rounded font-mono font-bold">SELECIONADO</span>}
+                              </span>
+                              <span className="block text-[10px] font-mono text-slate-500">{c.entidade.documento}</span>
+                            </td>
+                            <td className="px-5 py-3 text-center font-mono font-bold text-slate-300">{c.count} títulos</td>
+                            <td className="px-5 py-3 font-mono text-right font-bold text-slate-100">R$ {formatCurrency(c.totalOriginal)}</td>
+                            <td className="px-5 py-3 font-mono text-right font-bold text-emerald-400">R$ {formatCurrency(c.totalPago)}</td>
+                            <td className="px-5 py-3 font-mono text-right font-bold text-red-400">R$ {formatCurrency(c.totalSaldo)}</td>
+                            <td className="px-5 py-3 text-center">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+                                c.vencidosCount > 0 ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'bg-emerald-500/20 text-emerald-300'
+                              }`}>
+                                {c.vencidosCount > 0 ? `⚠️ ${c.vencidosCount} Vencidos` : '✅ Em Dia'}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3 text-center" onClick={e => e.stopPropagation()}>
+                              <button
+                                onClick={() => setSelectedClientId(c.entidade.id)}
+                                className="bg-red-600/15 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 text-xs px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1 mx-auto shadow-sm"
+                                title="Abrir ficha e extrato deste cliente"
+                              >
+                                <FileText size={12} />
+                                <span>Ver Ficha</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )
+          )}
+
           {/* ABA 1: GERAL */}
           {activeReport === 'GERAL' && (
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -358,11 +625,6 @@ export function RelatoriosView() {
                         </tr>
                       );
                     })}
-                    {filteredTitulos.length === 0 && (
-                      <tr>
-                        <td colSpan={8} className="px-6 py-12 text-center text-slate-500">Nenhum título localizado com os filtros selecionados.</td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
               </div>
@@ -395,7 +657,7 @@ export function RelatoriosView() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#232836]">
-                    {mesesList.map((m: any) => (
+                    {mesesList.map((m) => (
                       <tr key={m.mes} className="hover:bg-[#1f2432]/70 transition-colors font-mono">
                         <td className="px-5 py-3 font-bold text-slate-100 text-xs">📅 {m.mes}</td>
                         <td className="px-5 py-3 text-center text-slate-300">{m.count}</td>
@@ -403,47 +665,6 @@ export function RelatoriosView() {
                         <td className="px-5 py-3 text-right font-bold text-blue-400">R$ {formatCurrency(m.pagar)}</td>
                         <td className="px-5 py-3 text-right font-bold text-slate-100">R$ {formatCurrency(m.pago)}</td>
                         <td className="px-5 py-3 text-right font-bold text-red-400">R$ {formatCurrency(m.pendente)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ABA 3: POR CLIENTE */}
-          {activeReport === 'CLIENTE' && (
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="overflow-auto flex-1">
-                <table className="w-full text-left text-xs text-slate-300 border-collapse">
-                  <thead className="text-[11px] uppercase bg-[#111319] text-slate-400 border-b border-[#2b3242] sticky top-0 font-mono">
-                    <tr>
-                      <th className="px-5 py-3 font-semibold">Cliente / Razão Social</th>
-                      <th className="px-5 py-3 font-semibold text-center">N° Títulos</th>
-                      <th className="px-5 py-3 font-semibold text-right">Volume Total</th>
-                      <th className="px-5 py-3 font-semibold text-right">Total Liquidado</th>
-                      <th className="px-5 py-3 font-semibold text-right">Saldo Devedor Ativo</th>
-                      <th className="px-5 py-3 font-semibold text-center">Atrasos</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#232836]">
-                    {relatorioPorCliente.map((c) => (
-                      <tr key={c.entidade.id} className="hover:bg-[#1f2432]/70 transition-colors">
-                        <td className="px-5 py-3 font-bold text-slate-100">
-                          {c.entidade.nome}
-                          <span className="block text-[10px] font-mono text-slate-500">{c.entidade.documento}</span>
-                        </td>
-                        <td className="px-5 py-3 text-center font-mono font-bold text-slate-300">{c.count} títulos</td>
-                        <td className="px-5 py-3 font-mono text-right font-bold text-slate-100">R$ {formatCurrency(c.totalOriginal)}</td>
-                        <td className="px-5 py-3 font-mono text-right font-bold text-emerald-400">R$ {formatCurrency(c.totalPago)}</td>
-                        <td className="px-5 py-3 font-mono text-right font-bold text-red-400">R$ {formatCurrency(c.totalSaldo)}</td>
-                        <td className="px-5 py-3 text-center">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
-                            c.vencidosCount > 0 ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'bg-emerald-500/20 text-emerald-300'
-                          }`}>
-                            {c.vencidosCount > 0 ? `⚠️ ${c.vencidosCount} Vencidos` : '✅ Em Dia'}
-                          </span>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -573,22 +794,40 @@ export function RelatoriosView() {
 
             <div className="text-right">
               <span className="inline-block bg-slate-900 text-white text-[9pt] font-black px-2.5 py-1 rounded tracking-wider uppercase mb-1">
-                DOCUMENTO OFICIAL
+                {selectedClientId ? 'EXTRATO INDIVIDUAL DO CLIENTE' : 'DOCUMENTO OFICIAL'}
               </span>
               <p className="text-[8pt] text-slate-600 font-mono"><b>Emissão:</b> {dataHoraEmissao}</p>
               <p className="text-[8pt] text-slate-600 font-mono"><b>Operador:</b> {currentUser?.nome || 'Administrador'}</p>
             </div>
           </div>
 
-          {/* TÍTULO DO RELATÓRIO ATIVO */}
-          <div className="mt-3 pt-2 border-t border-slate-300 flex justify-between items-center">
-            <h2 className="text-sm font-black text-slate-900 tracking-wide uppercase">
-              {getReportTitle()}
-            </h2>
-            <span className="text-[8pt] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
-              Filtro: {selectedTipo !== 'TODOS' ? `Tipo [${selectedTipo}]` : 'Todos os Tipos'} | Status [{selectedStatus}]
-            </span>
-          </div>
+          {/* DADOS ESPECÍFICOS DO CLIENTE NO CABEÇALHO DA FICHA INDIVIDUAL */}
+          {activeReport === 'CLIENTE' && selectedClientId && activeClienteObj ? (
+            <div className="mt-3 p-2.5 bg-slate-100 border border-slate-300 rounded">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10pt] font-black text-slate-900 uppercase">
+                  SACADO / CLIENTE: {activeClienteObj.nome}
+                </span>
+                <span className="text-[8.5pt] font-mono font-bold text-slate-700">
+                  CNPJ/CPF: {activeClienteObj.documento}
+                </span>
+              </div>
+              <div className="text-[8pt] text-slate-600 font-mono flex justify-between">
+                <span><b>Endereço:</b> {activeClienteObj.endereco || 'Não informado'}</span>
+                <span><b>Contato:</b> {activeClienteObj.telefone || '-'} | {activeClienteObj.email || '-'}</span>
+              </div>
+            </div>
+          ) : (
+            /* TÍTULO PADRÃO */
+            <div className="mt-3 pt-2 border-t border-slate-300 flex justify-between items-center">
+              <h2 className="text-sm font-black text-slate-900 tracking-wide uppercase">
+                {getReportTitle()}
+              </h2>
+              <span className="text-[8pt] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
+                Filtro: {selectedTipo !== 'TODOS' ? `Tipo [${selectedTipo}]` : 'Todos os Tipos'} | Status [{selectedStatus}]
+              </span>
+            </div>
+          )}
         </div>
 
         {/* CARDS DE RESUMO FINANCEIRO (KPIs NO TOPO DO PDF) */}
@@ -597,6 +836,7 @@ export function RelatoriosView() {
             <span className="block text-[7.5pt] uppercase font-bold text-slate-500">Volume Total Original</span>
             <span className="text-xs font-black font-mono text-slate-900">
               R$ {formatCurrency(
+                (activeReport === 'CLIENTE' && selectedClientId) ? totalClienteSelOriginal :
                 activeReport === 'GERAL' ? totalOriginal :
                 activeReport === 'MES' ? (totalMesReceber + totalMesPagar) :
                 activeReport === 'CLIENTE' ? totalClienteOriginal :
@@ -610,6 +850,7 @@ export function RelatoriosView() {
             <span className="block text-[7.5pt] uppercase font-bold text-slate-500">Total Liquidado / Pago</span>
             <span className="text-xs font-black font-mono text-slate-900">
               R$ {formatCurrency(
+                (activeReport === 'CLIENTE' && selectedClientId) ? totalClienteSelPago :
                 activeReport === 'GERAL' ? totalPago :
                 activeReport === 'MES' ? totalMesPago :
                 activeReport === 'CLIENTE' ? totalClientePago :
@@ -623,6 +864,7 @@ export function RelatoriosView() {
             <span className="block text-[7.5pt] uppercase font-bold text-slate-500">Saldo Devedor / A Receber</span>
             <span className="text-xs font-black font-mono text-slate-900">
               R$ {formatCurrency(
+                (activeReport === 'CLIENTE' && selectedClientId) ? totalClienteSelSaldo :
                 activeReport === 'GERAL' ? totalSaldo :
                 activeReport === 'MES' ? totalMesPendente :
                 activeReport === 'CLIENTE' ? totalClienteSaldo :
@@ -636,6 +878,7 @@ export function RelatoriosView() {
             <span className="block text-[7.5pt] uppercase font-bold text-slate-500">Total de Registros</span>
             <span className="text-xs font-black font-mono text-slate-900">
               {
+                (activeReport === 'CLIENTE' && selectedClientId) ? titulosDoClienteSelecionado.length :
                 activeReport === 'GERAL' ? filteredTitulos.length :
                 activeReport === 'MES' ? mesesList.length :
                 activeReport === 'CLIENTE' ? relatorioPorCliente.length :
@@ -645,6 +888,105 @@ export function RelatoriosView() {
             </span>
           </div>
         </div>
+
+        {/* TABELA IMPRESSÃO: FICHA INDIVIDUAL DO CLIENTE (SELECIONADO) */}
+        {activeReport === 'CLIENTE' && selectedClientId && activeClienteObj ? (
+          <div>
+            <h3 className="text-[9pt] font-black text-slate-900 uppercase mb-1.5">
+              Extrato Detalhado de Títulos e Parcelas de {activeClienteObj.nome}
+            </h3>
+            <table className="w-full text-[8pt] text-left border-collapse border border-slate-300 mb-4">
+              <thead>
+                <tr className="bg-slate-100">
+                  <th className="border border-slate-300 px-2 py-1.5 font-bold">Documento / N°</th>
+                  <th className="border border-slate-300 px-2 py-1.5 font-bold text-center">Tipo</th>
+                  <th className="border border-slate-300 px-2 py-1.5 font-bold text-center">Emissão</th>
+                  <th className="border border-slate-300 px-2 py-1.5 font-bold text-center">Vencimento</th>
+                  <th className="border border-slate-300 px-2 py-1.5 font-bold text-center">Status</th>
+                  <th className="border border-slate-300 px-2 py-1.5 font-bold text-right">Valor Original</th>
+                  <th className="border border-slate-300 px-2 py-1.5 font-bold text-right">Valor Quitado</th>
+                  <th className="border border-slate-300 px-2 py-1.5 font-bold text-right">Saldo Devedor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {titulosDoClienteSelecionado.map((t, idx) => {
+                  const vencido = isTituloVencido(t);
+                  return (
+                    <tr key={t.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                      <td className="border border-slate-300 px-2 py-1 font-mono font-bold">{t.numero_documento}</td>
+                      <td className="border border-slate-300 px-2 py-1 text-center font-mono">{t.tipo_titulo}</td>
+                      <td className="border border-slate-300 px-2 py-1 text-center font-mono">{formatDateBR(t.data_emissao)}</td>
+                      <td className="border border-slate-300 px-2 py-1 text-center font-mono">{formatDateBR(t.data_vencimento)}</td>
+                      <td className="border border-slate-300 px-2 py-1 text-center font-bold">
+                        {t.status === 'PAGO' ? 'QUITADO' : vencido ? 'VENCIDO' : 'EM ABERTO'}
+                      </td>
+                      <td className="border border-slate-300 px-2 py-1 text-right font-mono">R$ {formatCurrency(t.valor_original)}</td>
+                      <td className="border border-slate-300 px-2 py-1 text-right font-mono text-slate-700">R$ {formatCurrency(t.valor_pago)}</td>
+                      <td className="border border-slate-300 px-2 py-1 text-right font-mono font-bold">R$ {formatCurrency(t.saldo_devedor)}</td>
+                    </tr>
+                  );
+                })}
+                <tr className="bg-slate-200 font-bold">
+                  <td colSpan={5} className="border border-slate-300 px-2 py-1.5 text-right uppercase">Totais da Ficha:</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-right font-mono">R$ {formatCurrency(totalClienteSelOriginal)}</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-right font-mono">R$ {formatCurrency(totalClienteSelPago)}</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-right font-mono font-black">R$ {formatCurrency(totalClienteSelSaldo)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Quadro de Instruções de Cobrança / PIX */}
+            <div className="p-3 bg-slate-50 border border-slate-300 rounded mb-4 text-[8pt] flex justify-between items-center">
+              <div>
+                <p className="font-bold text-slate-900 uppercase">Instruções para Quitação e Regularização:</p>
+                <p className="text-slate-600">Efetue o pagamento via PIX ou TED utilizando a chave corporativa abaixo e envie o comprovante.</p>
+                <p className="font-mono text-slate-900 mt-1"><b>Chave PIX (CNPJ):</b> {empresaConfig.cnpj || '00.000.000/0001-00'} | <b>Favorecido:</b> {empresaConfig.razaoSocial || 'Mezzold Financial'}</p>
+              </div>
+              <div className="text-right">
+                <span className="text-[10pt] font-black font-mono text-slate-900">Total a Liquidar: R$ {formatCurrency(totalClienteSelSaldo)}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* TABELA IMPRESSÃO: RANKING COMPARATIVO DE TODOS OS CLIENTES */
+          activeReport === 'CLIENTE' && (
+            <table className="w-full text-[8.5pt] text-left border-collapse border border-slate-300 mb-4">
+              <thead>
+                <tr className="bg-slate-100">
+                  <th className="border border-slate-300 px-3 py-2 font-bold">Cliente / Razão Social</th>
+                  <th className="border border-slate-300 px-3 py-2 font-bold">CNPJ / CPF</th>
+                  <th className="border border-slate-300 px-3 py-2 font-bold text-center">N° Títulos</th>
+                  <th className="border border-slate-300 px-3 py-2 font-bold text-right">Volume Total</th>
+                  <th className="border border-slate-300 px-3 py-2 font-bold text-right">Total Liquidado</th>
+                  <th className="border border-slate-300 px-3 py-2 font-bold text-right">Saldo Devedor Ativo</th>
+                  <th className="border border-slate-300 px-3 py-2 font-bold text-center">Situação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {relatorioPorCliente.map((c, idx) => (
+                  <tr key={c.entidade.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                    <td className="border border-slate-300 px-3 py-1.5 font-bold">{c.entidade.nome}</td>
+                    <td className="border border-slate-300 px-3 py-1.5 font-mono">{c.entidade.documento}</td>
+                    <td className="border border-slate-300 px-3 py-1.5 text-center font-mono">{c.count}</td>
+                    <td className="border border-slate-300 px-3 py-1.5 text-right font-mono">R$ {formatCurrency(c.totalOriginal)}</td>
+                    <td className="border border-slate-300 px-3 py-1.5 text-right font-mono">R$ {formatCurrency(c.totalPago)}</td>
+                    <td className="border border-slate-300 px-3 py-1.5 text-right font-mono font-bold">R$ {formatCurrency(c.totalSaldo)}</td>
+                    <td className="border border-slate-300 px-3 py-1.5 text-center font-bold">
+                      {c.vencidosCount > 0 ? `${c.vencidosCount} VENCIDO(S)` : 'EM DIA'}
+                    </td>
+                  </tr>
+                ))}
+                <tr className="bg-slate-200 font-bold">
+                  <td colSpan={3} className="border border-slate-300 px-3 py-2 text-right uppercase">Totais Consolidados:</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-mono">R$ {formatCurrency(totalClienteOriginal)}</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-mono">R$ {formatCurrency(totalClientePago)}</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-mono font-black">R$ {formatCurrency(totalClienteSaldo)}</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                </tr>
+              </tbody>
+            </table>
+          )
+        )}
 
         {/* TABELA 1 IMPRESSÃO: RELATÓRIO GERAL */}
         {activeReport === 'GERAL' && (
@@ -699,12 +1041,12 @@ export function RelatoriosView() {
                 <th className="border border-slate-300 px-3 py-2 font-bold text-center">Qtd Títulos</th>
                 <th className="border border-slate-300 px-3 py-2 font-bold text-right">Recebimentos Previstos</th>
                 <th className="border border-slate-300 px-3 py-2 font-bold text-right">Pagamentos / Despesas</th>
-                <th className="border border-slate-300 px-3 py-2 font-bold text-right">Total Liquidado</th>
+                <th className="border border-slate-300 px-3 py-2 font-bold text-right">Total Quitado</th>
                 <th className="border border-slate-300 px-3 py-2 font-bold text-right">Saldo Pendente Mês</th>
               </tr>
             </thead>
             <tbody>
-              {mesesList.map((m: any, idx) => (
+              {mesesList.map((m, idx) => (
                 <tr key={m.mes} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                   <td className="border border-slate-300 px-3 py-1.5 font-bold font-mono">{m.mes}</td>
                   <td className="border border-slate-300 px-3 py-1.5 text-center font-mono">{m.count}</td>
@@ -721,45 +1063,6 @@ export function RelatoriosView() {
                 <td className="border border-slate-300 px-3 py-2 text-right font-mono">R$ {formatCurrency(totalMesPagar)}</td>
                 <td className="border border-slate-300 px-3 py-2 text-right font-mono">R$ {formatCurrency(totalMesPago)}</td>
                 <td className="border border-slate-300 px-3 py-2 text-right font-mono font-black">R$ {formatCurrency(totalMesPendente)}</td>
-              </tr>
-            </tbody>
-          </table>
-        )}
-
-        {/* TABELA 3 IMPRESSÃO: POR CLIENTE */}
-        {activeReport === 'CLIENTE' && (
-          <table className="w-full text-[8.5pt] text-left border-collapse border border-slate-300 mb-4">
-            <thead>
-              <tr className="bg-slate-100">
-                <th className="border border-slate-300 px-3 py-2 font-bold">Cliente / Razão Social</th>
-                <th className="border border-slate-300 px-3 py-2 font-bold">CNPJ / CPF</th>
-                <th className="border border-slate-300 px-3 py-2 font-bold text-center">N° Títulos</th>
-                <th className="border border-slate-300 px-3 py-2 font-bold text-right">Volume Total</th>
-                <th className="border border-slate-300 px-3 py-2 font-bold text-right">Total Liquidado</th>
-                <th className="border border-slate-300 px-3 py-2 font-bold text-right">Saldo Devedor Ativo</th>
-                <th className="border border-slate-300 px-3 py-2 font-bold text-center">Situação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {relatorioPorCliente.map((c, idx) => (
-                <tr key={c.entidade.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                  <td className="border border-slate-300 px-3 py-1.5 font-bold">{c.entidade.nome}</td>
-                  <td className="border border-slate-300 px-3 py-1.5 font-mono">{c.entidade.documento}</td>
-                  <td className="border border-slate-300 px-3 py-1.5 text-center font-mono">{c.count}</td>
-                  <td className="border border-slate-300 px-3 py-1.5 text-right font-mono">R$ {formatCurrency(c.totalOriginal)}</td>
-                  <td className="border border-slate-300 px-3 py-1.5 text-right font-mono">R$ {formatCurrency(c.totalPago)}</td>
-                  <td className="border border-slate-300 px-3 py-1.5 text-right font-mono font-bold">R$ {formatCurrency(c.totalSaldo)}</td>
-                  <td className="border border-slate-300 px-3 py-1.5 text-center font-bold">
-                    {c.vencidosCount > 0 ? `${c.vencidosCount} VENCIDO(S)` : 'EM DIA'}
-                  </td>
-                </tr>
-              ))}
-              <tr className="bg-slate-200 font-bold">
-                <td colSpan={3} className="border border-slate-300 px-3 py-2 text-right uppercase">Totais Consolidados:</td>
-                <td className="border border-slate-300 px-3 py-2 text-right font-mono">R$ {formatCurrency(totalClienteOriginal)}</td>
-                <td className="border border-slate-300 px-3 py-2 text-right font-mono">R$ {formatCurrency(totalClientePago)}</td>
-                <td className="border border-slate-300 px-3 py-2 text-right font-mono font-black">R$ {formatCurrency(totalClienteSaldo)}</td>
-                <td className="border border-slate-300 px-3 py-2"></td>
               </tr>
             </tbody>
           </table>
@@ -845,10 +1148,24 @@ export function RelatoriosView() {
               <p>Chave de Validação: {Math.random().toString(36).substring(2, 10).toUpperCase()}-{Date.now()}</p>
             </div>
 
-            <div className="text-center w-64 border-t border-slate-900 pt-1">
-              <p className="text-[8.5pt] font-bold text-slate-900">Responsável Financeiro</p>
-              <p className="text-[7.5pt] text-slate-600">{empresaConfig.razaoSocial || 'Mezzold Financial'}</p>
-            </div>
+            {/* No relatório individual do cliente, mostra campo de assinatura de ambos */}
+            {activeReport === 'CLIENTE' && selectedClientId && activeClienteObj ? (
+              <div className="flex gap-8">
+                <div className="text-center w-48 border-t border-slate-900 pt-1">
+                  <p className="text-[8pt] font-bold text-slate-900">Devedor / Sacado</p>
+                  <p className="text-[7pt] text-slate-600 truncate">{activeClienteObj.nome}</p>
+                </div>
+                <div className="text-center w-48 border-t border-slate-900 pt-1">
+                  <p className="text-[8pt] font-bold text-slate-900">Cedente / Financeiro</p>
+                  <p className="text-[7pt] text-slate-600 truncate">{empresaConfig.razaoSocial || 'Mezzold Financial'}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center w-64 border-t border-slate-900 pt-1">
+                <p className="text-[8.5pt] font-bold text-slate-900">Responsável Financeiro</p>
+                <p className="text-[7.5pt] text-slate-600">{empresaConfig.razaoSocial || 'Mezzold Financial'}</p>
+              </div>
+            )}
           </div>
         </div>
 

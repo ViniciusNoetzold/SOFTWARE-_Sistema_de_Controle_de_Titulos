@@ -37,6 +37,8 @@ export interface Entidade {
   tipo_entidade: TipoEntidade;
   email: string;
   telefone: string;
+  endereco?: string;
+  limite_credito?: number;
   
   // Endereço completo
   cep?: string;
