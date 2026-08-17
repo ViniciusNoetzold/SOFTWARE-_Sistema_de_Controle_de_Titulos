@@ -13,12 +13,12 @@ export function WindowFrame({ title, subtitle, icon, onClose, children }: Window
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center p-2 md:p-3 animate-in fade-in zoom-in-95 duration-200">
+    <div className="absolute inset-0 z-20 flex items-center justify-center p-1 sm:p-2 md:p-3 animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
       
       {/* Window Container */}
       <div 
-        className={`relative bg-[#1a1d26]/95 backdrop-blur-2xl border border-[#2d3342] rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden transition-all duration-300 ${
-          isExpanded ? 'w-full h-full' : 'w-full h-full max-w-[98%] max-h-[98%]'
+        className={`relative bg-[#1a1d26]/95 backdrop-blur-2xl border border-[#2d3342] rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden transition-all duration-300 pointer-events-auto ${
+          isExpanded ? 'w-full h-full rounded-none' : 'w-full h-full max-w-[99vw] max-h-[99vh] sm:max-w-[98%] sm:max-h-[98%]'
         }`}
       >
         

@@ -190,120 +190,120 @@ export function RelatoriosView() {
           ========================================================================= */}
       <div className="no-print flex flex-col gap-3 flex-1 overflow-hidden">
         
-        {/* Top Selector das 5 Abas de Relatórios */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 shrink-0">
+        {/* Top Selector das 5 Abas de Relatórios (Responsivo com Auto-Fit / Wrap) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 md:gap-2 shrink-0">
           
           <button
             onClick={() => { setActiveReport('GERAL'); setSelectedClientId(null); }}
-            className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
+            className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 transition-all text-left ${
               activeReport === 'GERAL'
                 ? 'bg-red-600 border-red-500 text-white shadow-lg'
                 : 'bg-[#161922] border-[#2b3242] text-slate-300 hover:border-slate-500'
             }`}
           >
-            <FileText size={18} className={activeReport === 'GERAL' ? 'text-white' : 'text-red-500'} />
-            <div className="text-left">
-              <h4 className="text-xs font-bold leading-none">Relatório Geral</h4>
-              <span className="text-[9px] opacity-80">Listagem de Títulos</span>
+            <FileText size={17} className={`shrink-0 ${activeReport === 'GERAL' ? 'text-white' : 'text-red-500'}`} />
+            <div className="min-w-0">
+              <h4 className="text-[11px] sm:text-xs font-bold leading-tight truncate">Relatório Geral</h4>
+              <span className="text-[8px] sm:text-[9px] opacity-80 block truncate">Listagem de Títulos</span>
             </div>
           </button>
 
           <button
             onClick={() => { setActiveReport('MES'); setSelectedClientId(null); }}
-            className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
+            className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 transition-all text-left ${
               activeReport === 'MES'
                 ? 'bg-red-600 border-red-500 text-white shadow-lg'
                 : 'bg-[#161922] border-[#2b3242] text-slate-300 hover:border-slate-500'
             }`}
           >
-            <Calendar size={18} className={activeReport === 'MES' ? 'text-white' : 'text-emerald-400'} />
-            <div className="text-left">
-              <h4 className="text-xs font-bold leading-none">Visão por Mês</h4>
-              <span className="text-[9px] opacity-80">DRE de Caixa Mensal</span>
+            <Calendar size={17} className={`shrink-0 ${activeReport === 'MES' ? 'text-white' : 'text-emerald-400'}`} />
+            <div className="min-w-0">
+              <h4 className="text-[11px] sm:text-xs font-bold leading-tight truncate">Visão por Mês</h4>
+              <span className="text-[8px] sm:text-[9px] opacity-80 block truncate">DRE de Caixa Mensal</span>
             </div>
           </button>
 
           <button
             onClick={() => setActiveReport('CLIENTE')}
-            className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
+            className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 transition-all text-left ${
               activeReport === 'CLIENTE'
                 ? 'bg-red-600 border-red-500 text-white shadow-lg'
                 : 'bg-[#161922] border-[#2b3242] text-slate-300 hover:border-slate-500'
             }`}
           >
-            <Users size={18} className={activeReport === 'CLIENTE' ? 'text-white' : 'text-blue-400'} />
-            <div className="text-left">
-              <h4 className="text-xs font-bold leading-none">Por Cliente</h4>
-              <span className="text-[9px] opacity-80">Fichas & Extratos Individuais</span>
+            <Users size={17} className={`shrink-0 ${activeReport === 'CLIENTE' ? 'text-white' : 'text-blue-400'}`} />
+            <div className="min-w-0">
+              <h4 className="text-[11px] sm:text-xs font-bold leading-tight truncate">Por Cliente</h4>
+              <span className="text-[8px] sm:text-[9px] opacity-80 block truncate">Fichas Individuais</span>
             </div>
           </button>
 
           <button
             onClick={() => { setActiveReport('INADIMPLENCIA'); setSelectedClientId(null); }}
-            className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
+            className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 transition-all text-left ${
               activeReport === 'INADIMPLENCIA'
                 ? 'bg-red-600 border-red-500 text-white shadow-lg'
                 : 'bg-[#161922] border-[#2b3242] text-slate-300 hover:border-slate-500'
             }`}
           >
-            <AlertTriangle size={18} className={activeReport === 'INADIMPLENCIA' ? 'text-white' : 'text-amber-400'} />
-            <div className="text-left">
-              <h4 className="text-xs font-bold leading-none">Inadimplência</h4>
-              <span className="text-[9px] opacity-80">Aging de Atrasos</span>
+            <AlertTriangle size={17} className={`shrink-0 ${activeReport === 'INADIMPLENCIA' ? 'text-white' : 'text-amber-400'}`} />
+            <div className="min-w-0">
+              <h4 className="text-[11px] sm:text-xs font-bold leading-tight truncate">Inadimplência</h4>
+              <span className="text-[8px] sm:text-[9px] opacity-80 block truncate">Aging de Atrasos</span>
             </div>
           </button>
 
           <button
             onClick={() => { setActiveReport('CHEQUES'); setSelectedClientId(null); }}
-            className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
+            className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 transition-all text-left col-span-2 sm:col-span-1 ${
               activeReport === 'CHEQUES'
                 ? 'bg-red-600 border-red-500 text-white shadow-lg'
                 : 'bg-[#161922] border-[#2b3242] text-slate-300 hover:border-slate-500'
             }`}
           >
-            <Wallet size={18} className={activeReport === 'CHEQUES' ? 'text-white' : 'text-purple-400'} />
-            <div className="text-left">
-              <h4 className="text-xs font-bold leading-none">Custódia Cheques</h4>
-              <span className="text-[9px] opacity-80">Cheques e Carteira</span>
+            <Wallet size={17} className={`shrink-0 ${activeReport === 'CHEQUES' ? 'text-white' : 'text-purple-400'}`} />
+            <div className="min-w-0">
+              <h4 className="text-[11px] sm:text-xs font-bold leading-tight truncate">Custódia Cheques</h4>
+              <span className="text-[8px] sm:text-[9px] opacity-80 block truncate">Cheques e Carteira</span>
             </div>
           </button>
 
         </div>
 
-        {/* Barra de Filtros & Ações de Exportação */}
-        <div className="flex items-center justify-between bg-[#161922] border border-[#2b3242] rounded-xl px-3 py-2 shrink-0">
+        {/* Barra de Filtros & Ações de Exportação (Totalmente Responsiva) */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between bg-[#161922] border border-[#2b3242] rounded-xl p-2 md:px-3 md:py-2 gap-2 shrink-0">
           
-          <div className="flex items-center gap-2 text-xs flex-wrap">
+          <div className="flex items-center gap-2 text-xs flex-wrap flex-1 min-w-0">
             
             {/* Se estiver no modo Por Cliente e houver cliente selecionado */}
             {activeReport === 'CLIENTE' && selectedClientId ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => setSelectedClientId(null)}
-                  className="flex items-center gap-1 bg-[#1a1e2c] hover:bg-[#252b3e] text-slate-200 border border-[#2b3242] px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
+                  className="flex items-center gap-1 bg-[#1a1e2c] hover:bg-[#252b3e] text-slate-200 border border-[#2b3242] px-2.5 py-1 rounded-lg text-xs font-bold transition-all shrink-0"
                 >
                   <ArrowLeft size={13} />
-                  <span>Ver Todos os Clientes</span>
+                  <span>Ver Todos</span>
                 </button>
 
-                <div className="flex items-center gap-1.5 bg-[#11131a] px-3 py-1 rounded-lg border border-red-500/40 text-slate-100 font-bold">
+                <div className="flex items-center gap-1.5 bg-[#11131a] px-3 py-1 rounded-lg border border-red-500/40 text-slate-100 font-bold shrink-0">
                   <UserCheck size={14} className="text-red-400" />
-                  <span>{activeClienteObj?.nome}</span>
+                  <span className="truncate max-w-[160px] sm:max-w-xs">{activeClienteObj?.nome}</span>
                 </div>
 
                 {/* Seletor do Tipo de Relatório do Cliente */}
-                <div className="flex items-center bg-[#11131a] p-0.5 rounded-lg border border-[#2b3242] text-[11px] font-mono font-bold">
+                <div className="flex items-center bg-[#11131a] p-0.5 rounded-lg border border-[#2b3242] text-[11px] font-mono font-bold flex-wrap">
                   <button
                     onClick={() => setSelectedClientSubReport('TODOS_TITULOS')}
                     className={`px-2.5 py-0.5 rounded ${selectedClientSubReport === 'TODOS_TITULOS' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
                   >
-                    Extrato Integral
+                    Extrato
                   </button>
                   <button
                     onClick={() => setSelectedClientSubReport('PENDENTES')}
                     className={`px-2.5 py-0.5 rounded ${selectedClientSubReport === 'PENDENTES' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
                   >
-                    Apenas Pendências
+                    Pendências
                   </button>
                   <button
                     onClick={() => setSelectedClientSubReport('QUITADOS')}
@@ -315,15 +315,15 @@ export function RelatoriosView() {
               </div>
             ) : (
               /* Filtros Gerais Padrão */
-              <div className="flex items-center gap-1.5 bg-[#11131a] px-2.5 py-1 rounded-lg border border-[#2b3242]">
-                <Filter size={13} className="text-slate-400" />
-                <span className="text-[10px] font-mono uppercase text-slate-400 font-bold">Filtros:</span>
+              <div className="flex items-center gap-1.5 bg-[#11131a] px-2.5 py-1 rounded-lg border border-[#2b3242] flex-wrap">
+                <Filter size={13} className="text-slate-400 shrink-0" />
+                <span className="text-[10px] font-mono uppercase text-slate-400 font-bold shrink-0">Filtros:</span>
 
                 {/* Select Cliente */}
                 <select
                   value={selectedEntidade}
                   onChange={e => setSelectedEntidade(e.target.value)}
-                  className="bg-transparent text-slate-200 text-xs font-medium focus:outline-none cursor-pointer max-w-[150px]"
+                  className="bg-transparent text-slate-200 text-xs font-medium focus:outline-none cursor-pointer max-w-[130px] truncate"
                 >
                   <option value="TODOS" className="bg-[#11131a]">Todos Clientes</option>
                   {entidades.map(e => (
@@ -357,7 +357,7 @@ export function RelatoriosView() {
             )}
 
             {/* Busca */}
-            <div className="relative w-48">
+            <div className="relative flex-1 min-w-[140px]">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
@@ -369,24 +369,25 @@ export function RelatoriosView() {
             </div>
           </div>
 
-          {/* Botões de Ação */}
-          <div className="flex items-center gap-2">
+          {/* Botões de Ação Responsivos */}
+          <div className="flex items-center gap-2 shrink-0 justify-end">
             <button
               onClick={handleExportCSV}
               className="flex items-center gap-1.5 bg-[#222836] hover:bg-[#2e374a] text-slate-200 border border-[#2e3748] px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm"
               title="Exportar Planilha Excel/CSV"
             >
-              <Download size={13} className="text-emerald-400" />
-              <span>Exportar CSV</span>
+              <Download size={13} className="text-emerald-400 shrink-0" />
+              <span className="hidden sm:inline">Exportar CSV</span>
+              <span className="sm:hidden">CSV</span>
             </button>
 
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-[0_0_15px_rgba(220,38,38,0.35)]"
+              className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-[0_0_15px_rgba(220,38,38,0.35)] shrink-0"
               title={selectedClientId ? `Imprimir Ficha Individual de ${activeClienteObj?.nome}` : "Imprimir ou Salvar em PDF"}
             >
-              <Printer size={14} />
-              <span>{selectedClientId ? 'Imprimir Ficha do Cliente' : 'Imprimir / Salvar PDF'}</span>
+              <Printer size={14} className="shrink-0" />
+              <span>{selectedClientId ? 'Imprimir Ficha' : 'Imprimir / Salvar PDF'}</span>
             </button>
           </div>
 

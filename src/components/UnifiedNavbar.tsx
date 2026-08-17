@@ -177,20 +177,20 @@ export function UnifiedNavbar({
   };
 
   return (
-    <div ref={menuRef} className="unified-navbar no-print w-full bg-[#12151e] border-b border-[#252b3b] px-3 py-1.5 flex items-center justify-between shadow-xl relative z-40 select-none">
+    <div ref={menuRef} className="unified-navbar no-print w-full bg-[#12151e] border-b border-[#252b3b] px-2 sm:px-3 py-1.5 flex items-center justify-between shadow-xl relative z-40 select-none overflow-x-auto no-scrollbar gap-2">
       
       {/* Menu Options Bar */}
-      <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap md:flex-wrap shrink-0">
         {menuConfig.map((item) => {
           const Icon = item.icon;
           const isOpen = activeMenu === item.id;
           const isActive = item.activeViews.includes(currentView);
 
           return (
-            <div key={item.id} className="relative">
+            <div key={item.id} className="relative shrink-0">
               <button
                 onClick={() => handleMenuClick(item)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs transition-all duration-200 relative group ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs transition-all duration-200 relative group whitespace-nowrap ${
                   isActive
                     ? 'bg-red-600 text-white font-bold shadow-[0_0_15px_rgba(220,38,38,0.45)]'
                     : isOpen
