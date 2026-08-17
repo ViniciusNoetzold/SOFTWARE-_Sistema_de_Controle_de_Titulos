@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "MezzoldTitulos",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "identifier": "com.mezzold.titulos",
   "build": {
     "frontendDist": "../dist",
@@ -27,8 +27,12 @@
     "active": true,
     "targets": "all",
     "resources": [
-      "../Firebird-2.5.9.27139_0_Win32.exe",
-      "../Firebird-2.5.9.27139_0_x64.exe"
+      "../Bin/Firebird-2.5.9.27139_0_Win32.exe",
+      "../Bin/Firebird-2.5.9.27139_0_x64.exe",
+      "../Bin/IBExpert.exe",
+      "../Bin/IBEScript.exe",
+      "../schema_firebird.sql",
+      "../install_mezzold_environment.bat"
     ],
     "icon": [
       "icons/32x32.png",
