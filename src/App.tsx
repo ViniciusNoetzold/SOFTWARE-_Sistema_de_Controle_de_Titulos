@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UnifiedNavbar } from './components/UnifiedNavbar';
 import { ReportModal } from './components/ReportModal';
 import { ReportViewerModal } from './components/ReportViewerModal';
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 import { AppProvider, useAppContext } from './context/AppContext';
+import { initializeMezzoldEnvironment } from './lib/environmentService';
 
 // Modals
 import { BorderoModal } from './components/modals/BorderoModal';
@@ -40,6 +41,10 @@ import { AlertaVencimentoModal } from './components/modals/AlertaVencimentoModal
 
 function MainAppContent() {
   const { currentUser, toastMessage, showToast } = useAppContext();
+
+  useEffect(() => {
+    initializeMezzoldEnvironment().catch(console.error);
+  }, []);
 
   const [currentView, setCurrentView] = useState<string>('home');
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);

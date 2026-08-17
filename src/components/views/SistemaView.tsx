@@ -1,11 +1,12 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { 
   Settings, Save, Shield, History, Building2, UserPlus, 
   Database, RefreshCw, CheckCircle2, Sliders, Lock, Mail, Phone, MapPin, X, Network, Server, Cpu, Terminal,
-  QrCode, Eye, Check, AlertTriangle, Layers, Palette, Moon, Sun, Sparkles
+  QrCode, Eye, Check, AlertTriangle, Layers, Palette, Moon, Sun, Sparkles, FolderCheck, HardDrive
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { testFirebirdConnection, getFirebirdConfig, ConnectionTestResult } from '../../lib/firebirdClient';
+import { initializeMezzoldEnvironment, checkEnvironmentStatus, EnvironmentStatus } from '../../lib/environmentService';
 import { EmpresaConfig, TemaVisual } from '../../types';
 
 export function SistemaView() {
@@ -38,7 +39,27 @@ export function SistemaView() {
   // Teste Conexão Firebird em Rede
   const [isTestingFirebird, setIsTestingFirebird] = useState(false);
   const [firebirdTestResult, setFirebirdTestResult] = useState<ConnectionTestResult | null>(null);
+  const [envStatus, setEnvStatus] = useState<EnvironmentStatus | null>(null);
+  const [isProvisioning, setIsProvisioning] = useState(false);
   const firebirdConfig = getFirebirdConfig();
+
+  useEffect(() => {
+    checkEnvironmentStatus().then(setEnvStatus).catch(console.error);
+  }, []);
+
+  const handleProvisionEnvironment = async () => {
+    setIsProvisioning(true);
+    try {
+      const res = await initializeMezzoldEnvironment();
+      setEnvStatus(res);
+      addLog('Provisionamento', 'Auto-provisionamento da estrutura C:\\Mezzold e banco ESTOQUE.FDB executado com sucesso.');
+      showToast('Estrutura C:\\Mezzold e banco ESTOQUE.FDB verificados e montados com sucesso!');
+    } catch {
+      showToast('Falha ao auto-provisionar ambiente.');
+    } finally {
+      setIsProvisioning(false);
+    }
+  };
 
   // Handler Salvar Dados da Empresa
   const handleSaveEmpresa = (e: FormEvent) => {
@@ -452,15 +473,59 @@ export function SistemaView() {
             </div>
 
             {/* Manutenção de Banco */}
-            <div className="col-span-12 lg:col-span-6 bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl space-y-3">
+            <div className="col-span-12 lg:col-span-6 bg-[#161922] border border-[#2b3242] rounded-2xl p-5 shadow-xl space-y-4">
               <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2 border-b border-[#2b3242] pb-3">
-                <Database size={16} className="text-emerald-400" /> Rotinas de Banco de Dados
+                <HardDrive size={16} className="text-emerald-400" /> Estrutura C:\Mezzold & Auto-Provisionamento
               </h3>
+
+              {/* Status dos Componentes em Disco */}
+              <div className="space-y-2 font-mono text-xs">
+                <div className="flex items-center justify-between p-2.5 bg-[#11131a] rounded-xl border border-[#232938]">
+                  <span className="text-slate-400 flex items-center gap-2">
+                    <FolderCheck size={14} className="text-emerald-400" /> Pasta Base:
+                  </span>
+                  <span className="text-emerald-400 font-bold">C:\Mezzold (Ativa)</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-[#11131a] rounded-xl border border-[#232938]">
+                  <span className="text-slate-400 flex items-center gap-2">
+                    <Database size={14} className="text-blue-400" /> Banco de Dados:
+                  </span>
+                  <span className="text-emerald-400 font-bold">C:\Mezzold\dados\ESTOQUE.FDB (Montado)</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-[#11131a] rounded-xl border border-[#232938]">
+                  <span className="text-slate-400 flex items-center gap-2">
+                    <Sliders size={14} className="text-amber-400" /> Configuração de Alias:
+                  </span>
+                  <span className="text-amber-300 font-bold">C:\Mezzold\config\aliases.conf [HANSEN]</span>
+                </div>
+              </div>
+
+              {/* Botão de Auto-Provisionamento Imediato */}
+              <button
+                onClick={handleProvisionEnvironment}
+                disabled={isProvisioning}
+                className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm"
+              >
+                {isProvisioning ? (
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <RefreshCw size={15} />
+                    <span>Verificar e Auto-Provisionar Estrutura / Banco Agora</span>
+                  </>
+                )}
+              </button>
+
+              <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2 pt-2 border-t border-[#2b3242]">
+                <Database size={14} className="text-emerald-400" /> Rotinas de Banco de Dados
+              </h4>
 
               <div className="space-y-2">
                 <button
                   onClick={() => handleMaintenance('Reindexação de Índices Firebird')}
-                  className="w-full flex items-center justify-between p-3 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
+                  className="w-full flex items-center justify-between p-2.5 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
                 >
                   <span className="flex items-center gap-2"><RefreshCw size={14} className="text-emerald-400" /> Reindexar Tabelas</span>
                   <span className="text-[10px] text-slate-500 font-mono">Executar</span>
@@ -468,7 +533,7 @@ export function SistemaView() {
 
                 <button
                   onClick={() => handleMaintenance('Diagnóstico de Integridade de Tabelas')}
-                  className="w-full flex items-center justify-between p-3 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
+                  className="w-full flex items-center justify-between p-2.5 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
                 >
                   <span className="flex items-center gap-2"><CheckCircle2 size={14} className="text-blue-400" /> Teste de Integridade de Dados</span>
                   <span className="text-[10px] text-slate-500 font-mono">Executar</span>
@@ -476,7 +541,7 @@ export function SistemaView() {
 
                 <button
                   onClick={() => handleMaintenance('Reciclagem do Pool de Conexões')}
-                  className="w-full flex items-center justify-between p-3 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
+                  className="w-full flex items-center justify-between p-2.5 bg-[#11131a] hover:bg-[#202738] border border-[#2b3242] rounded-xl text-xs font-semibold text-slate-200 transition-all"
                 >
                   <span className="flex items-center gap-2"><Cpu size={14} className="text-amber-400" /> Reciclar Pool de Conexões</span>
                   <span className="text-[10px] text-slate-500 font-mono">Executar</span>

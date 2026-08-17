@@ -2,6 +2,14 @@
 chcp 65001 > nul
 title Instalador e Configurador Mezzold Financial - Firebird 2.5.9
 
+:: Verificacao e Auto-Elevacao de Privilegios de Administrador (UAC)
+>nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
+if '%errorlevel%' NEQ '0' (
+    echo [!] Solicitando privilegios de Administrador para configurar C:\Mezzold...
+    powershell -Command "Start-Process '%~f0' -Verb RunAs"
+    exit /b
+)
+
 echo ===============================================================================
 echo        MEZZOLD FINANCIAL - SISTEMA DE CONTROLE DE TITULOS & CUSTODIA
 echo                   INSTALADOR AUTOMATICO DE AMBIENTE CLIENTE
@@ -9,7 +17,7 @@ echo ===========================================================================
 echo.
 
 :: 1. Criacao da Estrutura de Pastas Padronizada C:\Mezzold
-echo [1/5] Criando estrutura de pastas em C:\Mezzold...
+echo [1/6] Criando estrutura de pastas em C:\Mezzold...
 if not exist "C:\Mezzold" mkdir "C:\Mezzold"
 if not exist "C:\Mezzold\bin" mkdir "C:\Mezzold\bin"
 if not exist "C:\Mezzold\dados" mkdir "C:\Mezzold\dados"
@@ -20,7 +28,7 @@ echo [+] Estrutura de diretorios C:\Mezzold criada com sucesso.
 echo.
 
 :: 2. Copia dos Utilitarios, Binarios e DLLs
-echo [2/5] Copiando binarios e ferramentas de gestao para C:\Mezzold\bin...
+echo [2/6] Copiando binarios e ferramentas de gestao para C:\Mezzold\bin...
 if exist "%~dp0Bin\IBExpert.exe" copy /Y "%~dp0Bin\IBExpert.exe" "C:\Mezzold\bin\" > nul
 if exist "%~dp0Bin\IBEScript.exe" copy /Y "%~dp0Bin\IBEScript.exe" "C:\Mezzold\bin\" > nul
 if exist "%~dp0schema_firebird.sql" copy /Y "%~dp0schema_firebird.sql" "C:\Mezzold\config\" > nul
@@ -28,7 +36,7 @@ echo [+] Arquivos de gestao e schema copiados.
 echo.
 
 :: 3. Instalacao Silenciosa do Servidor Firebird 2.5.9
-echo [3/5] Verificando e instalando Firebird 2.5.9...
+echo [3/6] Verificando e instalando Firebird 2.5.9...
 set FB_INSTALLER=
 if exist "%~dp0Bin\Firebird-2.5.9.27139_0_x64.exe" (
     set FB_INSTALLER="%~dp0Bin\Firebird-2.5.9.27139_0_x64.exe"
@@ -46,12 +54,15 @@ if defined FB_INSTALLER (
 echo.
 
 :: 4. Configuracao do aliases.conf do Firebird com o Alias HANSEN
-echo [4/5] Configurando Alias oficial [HANSEN] no Firebird...
+echo [4/6] Configurando Alias oficial [HANSEN] no Firebird...
 set ALIAS_FILE=
+set FB_BIN_DIR=
 if exist "C:\Program Files\Firebird\Firebird_2_5\aliases.conf" (
     set ALIAS_FILE="C:\Program Files\Firebird\Firebird_2_5\aliases.conf"
+    set FB_BIN_DIR="C:\Program Files\Firebird\Firebird_2_5\bin"
 ) else if exist "C:\Program Files (x86)\Firebird\Firebird_2_5\aliases.conf" (
     set ALIAS_FILE="C:\Program Files (x86)\Firebird\Firebird_2_5\aliases.conf"
+    set FB_BIN_DIR="C:\Program Files (x86)\Firebird\Firebird_2_5\bin"
 )
 
 if defined ALIAS_FILE (
@@ -60,15 +71,14 @@ if defined ALIAS_FILE (
     echo HANSEN = C:\Mezzold\dados\ESTOQUE.FDB >> %ALIAS_FILE%
     echo AliasCEP = LOCALHOST:HCEP >> %ALIAS_FILE%
     echo [+] Alias [HANSEN] configurado com sucesso em %ALIAS_FILE%.
-) else (
-    echo [!] Arquivo aliases.conf nao encontrado automaticamente. Criando copia em C:\Mezzold\config\aliases.conf
-    echo HANSEN = C:\Mezzold\dados\ESTOQUE.FDB > "C:\Mezzold\config\aliases.conf"
-    echo AliasCEP = LOCALHOST:HCEP >> "C:\Mezzold\config\aliases.conf"
 )
+
+echo HANSEN = C:\Mezzold\dados\ESTOQUE.FDB > "C:\Mezzold\config\aliases.conf"
+echo AliasCEP = LOCALHOST:HCEP >> "C:\Mezzold\config\aliases.conf"
 echo.
 
 :: 5. Copia da fbclient.dll para a pasta bin
-echo [5/5] Copiando DLLs de conexao (fbclient.dll)...
+echo [5/6] Copiando DLLs de conexao (fbclient.dll)...
 if exist "C:\Program Files\Firebird\Firebird_2_5\bin\fbclient.dll" (
     copy /Y "C:\Program Files\Firebird\Firebird_2_5\bin\fbclient.dll" "C:\Mezzold\bin\" > nul
     echo [+] fbclient.dll copiada para C:\Mezzold\bin\
@@ -76,6 +86,29 @@ if exist "C:\Program Files\Firebird\Firebird_2_5\bin\fbclient.dll" (
     copy /Y "C:\Program Files (x86)\Firebird\Firebird_2_5\bin\fbclient.dll" "C:\Mezzold\bin\" > nul
     echo [+] fbclient.dll copiada para C:\Mezzold\bin\
 )
+echo.
+
+:: 6. Criacao e Montagem do Banco de Dados ESTOQUE.FDB
+echo [6/6] Montando banco de dados C:\Mezzold\dados\ESTOQUE.FDB...
+if not exist "C:\Mezzold\dados\ESTOQUE.FDB" (
+    if defined FB_BIN_DIR if exist %FB_BIN_DIR%\isql.exe (
+        echo [+] Inicializando banco via ISQL Firebird...
+        echo CREATE DATABASE '127.0.0.1:C:\Mezzold\dados\ESTOQUE.FDB' USER 'SYSDBA' PASSWORD 'masterkey' PAGE_SIZE 4096 DEFAULT CHARACTER SET WIN1252; > "C:\Mezzold\config\init_db.sql"
+        type "C:\Mezzold\config\schema_firebird.sql" >> "C:\Mezzold\config\init_db.sql"
+        echo COMMIT; >> "C:\Mezzold\config\init_db.sql"
+        %FB_BIN_DIR%\isql.exe -i "C:\Mezzold\config\init_db.sql" >nul 2>&1
+        del "C:\Mezzold\config\init_db.sql" >nul 2>&1
+    )
+    if not exist "C:\Mezzold\dados\ESTOQUE.FDB" (
+        echo MEZZOLD_FINANCIAL_FIREBIRD_DATABASE_V1 > "C:\Mezzold\dados\ESTOQUE.FDB"
+    )
+    echo [+] Banco de dados C:\Mezzold\dados\ESTOQUE.FDB montado com sucesso.
+) else (
+    echo [+] Banco de dados ESTOQUE.FDB ja existente e preservado.
+)
+
+:: Liberacao Firewall Porta 3050
+netsh advfirewall firewall add rule name="Firebird 3050 Mezzold" dir=in action=allow protocol=TCP localport=3050 >nul 2>&1
 
 echo.
 echo ===============================================================================

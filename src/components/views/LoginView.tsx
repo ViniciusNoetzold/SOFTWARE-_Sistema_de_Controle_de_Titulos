@@ -122,7 +122,7 @@ export function LoginView() {
                   type="text"
                   value={usernameInput}
                   onChange={e => setUsernameInput(e.target.value)}
-                  placeholder="Ex: admin@mezzold.com ou admin"
+                  placeholder="Ex: 000, admin ou e-mail"
                   autoFocus={!isRememberedMode}
                   className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl pl-10 pr-4 py-3 text-xs font-mono text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-500 transition-colors"
                 />
