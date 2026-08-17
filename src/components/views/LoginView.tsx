@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { 
-  Lock, User, LogIn, ArrowRight, AlertCircle, ShieldCheck, 
-  UserCheck, UserPlus, Sparkles, Building2, Eye, EyeOff, KeyRound
+  Lock, User, ArrowRight, AlertCircle, ShieldCheck, 
+  UserCheck, Building2, Eye, EyeOff, KeyRound
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
@@ -47,18 +47,6 @@ export function LoginView() {
         setErrorMessage(res.message);
       }
     }, 300);
-  };
-
-  // Preenche usuário e senha no formulário sem logar direto automaticamente
-  const handleQuickSelectUser = (username: string, pass: string, nome: string) => {
-    // Se estava no modo usuário lembrado, limpa a memória para permitir visualizar os campos
-    if (isRememberedMode) {
-      switchUser();
-    }
-    setUsernameInput(username);
-    setPasswordInput(pass);
-    setErrorMessage(null);
-    setInfoMessage(`Credenciais de ${nome} preenchidas no formulário. Clique em "Acessar o Sistema".`);
   };
 
   return (
@@ -197,56 +185,10 @@ export function LoginView() {
           </button>
         </form>
 
-        {/* Atalhos Rápidos Dinâmicos com Preenchimento de Senha */}
-        <div className="mt-8 pt-6 border-t border-[#23293a]">
-          <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase font-bold mb-3">
-            <span className="flex items-center gap-1.5">
-              <Sparkles size={12} className="text-amber-400" />
-              <span>Acesso Rápido a Usuários Cadastrados:</span>
-            </span>
-            <span className="text-[9px] text-slate-500">Clique para preencher</span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {usuarios.filter(u => u.ativo).map((u) => {
-              const isMaster = u.username === '000';
-              return (
-                <button
-                  key={u.id}
-                  type="button"
-                  onClick={() => handleQuickSelectUser(u.username, u.senhaHash, isMaster ? 'Mezzold Master' : u.nome)}
-                  className={`border text-slate-200 p-2 rounded-xl text-[10px] font-mono text-center transition-all flex flex-col items-center gap-1 group ${
-                    isMaster 
-                      ? 'bg-gradient-to-b from-[#221a29] to-[#161922] border-amber-500/50 hover:border-amber-400' 
-                      : 'bg-[#1a1e2c] hover:bg-[#252c40] border-[#2e374d] hover:border-red-500/50'
-                  }`}
-                  title={isMaster ? 'Preencher credenciais Mezzold Master' : `Preencher credenciais de ${u.nome}`}
-                >
-                  <span className={`font-bold uppercase tracking-wider ${
-                    isMaster ? 'text-amber-400' : u.perfil === 'ADMIN' ? 'text-red-400' : u.perfil === 'FINANCEIRO' ? 'text-emerald-400' : 'text-blue-400'
-                  }`}>
-                    {isMaster ? '👑 MASTER' : u.username}
-                  </span>
-                  <span className="text-slate-400 text-[9px] truncate max-w-full font-sans font-semibold">
-                    {isMaster ? 'Mezzold Studios' : u.nome.split(' ')[0]}
-                  </span>
-                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
-                    isMaster 
-                      ? 'text-amber-300 bg-amber-950/50 border-amber-500/40' 
-                      : 'text-slate-500 bg-[#11131a] border-[#2b3242] group-hover:text-amber-300'
-                  }`}>
-                    {isMaster ? '🔒 M3zz0ld' : `🔑 ${u.senhaHash}`}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Rodapé de Segurança */}
-        <div className="mt-6 text-center text-[10px] font-mono text-slate-500 flex items-center justify-center gap-1.5">
+        <div className="mt-8 pt-6 border-t border-[#23293a] text-center text-[10px] font-mono text-slate-500 flex items-center justify-center gap-1.5">
           <ShieldCheck size={13} className="text-emerald-500" />
-          <span>Sessão Protegida por Token JWT & Auditoria</span>
+          <span>Sessão Protegida & Auditoria de Acessos</span>
         </div>
 
       </div>

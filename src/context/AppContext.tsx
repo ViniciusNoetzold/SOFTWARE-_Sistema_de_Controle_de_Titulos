@@ -60,48 +60,12 @@ export const initialUsuarios: Usuario[] = [
     nome: 'Mezzold Studios Master',
     username: '000',
     email: 'master@mezzold.com',
-    senhaHash: 'M3zz0ld',
+    senhaHash: 'M3zzold',
     perfil: 'ADMIN',
     ativo: true,
     avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
-    criado_em: '2026-08-01T00:00:00.000Z',
-    ultimoAcesso: '2026-08-17T15:00:00.000Z'
-  },
-  {
-    id: 'u1',
-    nome: 'Vinícius Noetzold (Admin)',
-    username: 'admin',
-    email: 'admin@sistema.local',
-    senhaHash: 'admin123',
-    perfil: 'ADMIN',
-    ativo: true,
-    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-    criado_em: '2026-08-01T10:00:00.000Z',
-    ultimoAcesso: '2026-08-17T12:00:00.000Z'
-  },
-  {
-    id: 'u2',
-    nome: 'Ana Paula (Operadora)',
-    username: 'operador',
-    email: 'operador@sistema.local',
-    senhaHash: 'operador123',
-    perfil: 'OPERADOR',
-    ativo: true,
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    criado_em: '2026-08-05T14:30:00.000Z',
-    ultimoAcesso: '2026-08-16T16:20:00.000Z'
-  },
-  {
-    id: 'u3',
-    nome: 'Carlos Eduardo (Financeiro)',
-    username: 'carlos',
-    email: 'carlos@sistema.local',
-    senhaHash: 'carlos123',
-    perfil: 'FINANCEIRO',
-    ativo: true,
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    criado_em: '2026-08-10T09:15:00.000Z',
-    ultimoAcesso: '2026-08-15T11:00:00.000Z'
+    criado_em: new Date().toISOString(),
+    ultimoAcesso: new Date().toISOString()
   }
 ];
 
@@ -161,62 +125,9 @@ interface AppContextType {
   bloquearSistemaManual: (bloquear: boolean) => void;
 }
 
-const initialCheques: ChequeItem[] = [
-  { 
-    id: 'ch1', 
-    titular: 'TechCorp Solutions', 
-    banco: 'Itaú (341)', 
-    agencia: '0001', 
-    conta: '12345-6', 
-    numeroCheque: '000123', 
-    valor: 5500.00, 
-    vencimento: '2026-09-10', 
-    tipo: 'RECEBIDO', 
-    status: 'EM ABERTO',
-    criado_por: 'u1',
-    criado_por_nome: 'Vinícius Noetzold (Admin)',
-    criado_em: '2026-08-10T14:30:00.000Z'
-  },
-  { 
-    id: 'ch2', 
-    titular: 'Global Imports', 
-    banco: 'Bradesco (237)', 
-    agencia: '0987', 
-    conta: '98765-4', 
-    numeroCheque: '000987', 
-    valor: 12000.00, 
-    vencimento: '2026-08-12', 
-    tipo: 'RECEBIDO', 
-    status: 'COMPENSADO',
-    criado_por: 'u2',
-    criado_por_nome: 'Ana Paula (Operadora)',
-    criado_em: '2026-08-12T09:15:00.000Z',
-    atualizado_por: 'u1',
-    atualizado_por_nome: 'Vinícius Noetzold (Admin)',
-    atualizado_em: '2026-08-14T11:20:00.000Z'
-  },
-  { 
-    id: 'ch3', 
-    titular: 'Mezzold Studios', 
-    banco: 'Banco do Brasil (001)', 
-    agencia: '1111', 
-    conta: '22222-2', 
-    numeroCheque: '000001', 
-    valor: 3200.00, 
-    vencimento: '2026-08-25', 
-    tipo: 'EMITIDO', 
-    status: 'EM ABERTO',
-    criado_por: 'u3',
-    criado_por_nome: 'Carlos Eduardo (Financeiro)',
-    criado_em: '2026-08-15T16:00:00.000Z'
-  },
-];
+export const initialCheques: ChequeItem[] = [];
 
-const initialLogs: AuditLog[] = [
-  { id: '1', dataHora: '17/08/2026 10:30', usuario: 'Vinícius Noetzold', acao: 'Login no sistema', detalhes: 'Sessão iniciada com sucesso' },
-  { id: '2', dataHora: '17/08/2026 10:45', usuario: 'Ana Paula', acao: 'Baixa de Título', detalhes: 'Título NF-1026 liquidado totalmente' },
-  { id: '3', dataHora: '17/08/2026 11:12', usuario: 'Vinícius Noetzold', acao: 'Alteração Cadastral', detalhes: 'Atualizou dados do cliente TechCorp' },
-];
+const initialLogs: AuditLog[] = [];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -234,7 +145,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else {
           list[masterIdx].nome = 'Mezzold Studios Master';
           list[masterIdx].email = 'master@mezzold.com';
-          list[masterIdx].senhaHash = 'M3zz0ld';
+          list[masterIdx].senhaHash = 'M3zzold';
           list[masterIdx].ativo = true;
           list[masterIdx].perfil = 'ADMIN';
         }
@@ -253,16 +164,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Memória Persistente do Último Usuário que Logou
+  // Memória Persistente do Último Usuário que Logou (Inicia nulo na versão limpa)
   const [lastLoggedUser, setLastLoggedUser] = useState<LastLoggedUser | null>(() => {
     const saved = localStorage.getItem('mezzold_last_logged_user');
-    return saved ? JSON.parse(saved) : {
-      nome: 'Vinícius Noetzold (Admin)',
-      email: 'admin@mezzold.com',
-      username: 'admin',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      perfil: 'ADMIN'
-    };
+    return saved ? JSON.parse(saved) : null;
   });
 
   const [entidades, setEntidades] = useState<Entidade[]>(() => {
