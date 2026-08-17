@@ -20,7 +20,8 @@ export function LicencaMasterModal({ isOpen, onClose }: { isOpen: boolean; onClo
   // Estados locais de edição
   const [diaVencimento, setDiaVencimento] = useState<number>(assinaturaLicenca.diaVencimento || 15);
   const [valorMensalidade, setValorMensalidade] = useState<string>(assinaturaLicenca.valorMensalidade ? String(assinaturaLicenca.valorMensalidade) : '180.00');
-  const [whatsappSuporte, setWhatsappSuporte] = useState<string>(assinaturaLicenca.whatsappSuporte || '5511999999999');
+  const [whatsappSuporte, setWhatsappSuporte] = useState<string>(assinaturaLicenca.whatsappSuporte || '555497131399');
+  const [chavePixLicenca, setChavePixLicenca] = useState<string>(assinaturaLicenca.chavePixLicenca || '5554997030349');
   const [dataValidadeManual, setDataValidadeManual] = useState<string>(
     assinaturaLicenca.dataValidadeISO ? assinaturaLicenca.dataValidadeISO.split('T')[0] : ''
   );
@@ -50,6 +51,7 @@ export function LicencaMasterModal({ isOpen, onClose }: { isOpen: boolean; onClo
       diaVencimento: Number(diaVencimento),
       valorMensalidade: parsedVal,
       whatsappSuporte: whatsappSuporte.replace(/\D/g, ''),
+      chavePixLicenca: chavePixLicenca.trim(),
       dataValidadeISO: finalISO
     });
   };
@@ -249,8 +251,21 @@ export function LicencaMasterModal({ isOpen, onClose }: { isOpen: boolean; onClo
                   type="text"
                   value={whatsappSuporte}
                   onChange={e => setWhatsappSuporte(e.target.value)}
-                  placeholder="5511999999999"
+                  placeholder="555497131399"
                   className="w-full bg-[#10131c] border border-[#2b3242] rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase text-slate-400 font-bold mb-1">
+                  Chave PIX para Pagamento da Mensalidade
+                </label>
+                <input
+                  type="text"
+                  value={chavePixLicenca}
+                  onChange={e => setChavePixLicenca(e.target.value)}
+                  placeholder="5554997030349"
+                  className="w-full bg-[#10131c] border border-[#2b3242] rounded-xl px-3 py-2 text-amber-400 font-bold focus:outline-none focus:border-amber-500"
                 />
               </div>
 

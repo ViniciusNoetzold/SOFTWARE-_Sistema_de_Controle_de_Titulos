@@ -36,6 +36,7 @@ import { RelatoriosView } from './components/views/RelatoriosView';
 // Licença & Bloqueio
 import { LicencaMasterModal } from './components/modals/LicencaMasterModal';
 import { SistemaBloqueadoOverlay } from './components/SistemaBloqueadoOverlay';
+import { AlertaVencimentoModal } from './components/modals/AlertaVencimentoModal';
 
 function MainAppContent() {
   const { currentUser, toastMessage, showToast } = useAppContext();
@@ -45,6 +46,7 @@ function MainAppContent() {
   const [isReportViewerOpen, setIsReportViewerOpen] = useState(false);
   const [reportFilterData, setReportFilterData] = useState<any>(null);
   const [isMasterLicencaOpen, setIsMasterLicencaOpen] = useState(false);
+  const [isAlertaVencimentoOpen, setIsAlertaVencimentoOpen] = useState(false);
   
   // Toolbar Modals State
   const [openBorderoModal, setOpenBorderoModal] = useState(false);
@@ -227,6 +229,12 @@ function MainAppContent() {
         <DescontoModal isOpen={openDescontoModal} onClose={() => setOpenDescontoModal(false)} />
         <DescCedenteModal isOpen={openDescCedenteModal} onClose={() => setOpenDescCedenteModal(false)} />
 
+        {/* Modal Informativo de Vencimento e Chave PIX (Acionado ao clicar no alerta piscando) */}
+        <AlertaVencimentoModal 
+          isOpen={isAlertaVencimentoOpen} 
+          onClose={() => setIsAlertaVencimentoOpen(false)} 
+        />
+
         {/* Modal de Gestão da Licença (Mestre 000) */}
         <LicencaMasterModal 
           isOpen={isMasterLicencaOpen} 
@@ -247,7 +255,10 @@ function MainAppContent() {
         )}
       </main>
 
-      <StatusBar onOpenMasterLicenca={() => setIsMasterLicencaOpen(true)} />
+      <StatusBar 
+        onOpenMasterLicenca={() => setIsMasterLicencaOpen(true)}
+        onOpenAlertaVencimento={() => setIsAlertaVencimentoOpen(true)}
+      />
     </div>
   );
 }

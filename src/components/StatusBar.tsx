@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { AlertCircle, Lock, Crown } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
-export function StatusBar({ onOpenMasterLicenca }: { onOpenMasterLicenca?: () => void }) {
+export function StatusBar({ 
+  onOpenMasterLicenca,
+  onOpenAlertaVencimento
+}: { 
+  onOpenMasterLicenca?: () => void;
+  onOpenAlertaVencimento?: () => void;
+}) {
   const { licencaStatus, currentUser } = useAppContext();
   const [timeStr, setTimeStr] = useState('');
   const [dateStr, setDateStr] = useState('');
@@ -37,7 +43,7 @@ export function StatusBar({ onOpenMasterLicenca }: { onOpenMasterLicenca?: () =>
       <div className="flex items-center gap-3">
         <span className="font-mono text-slate-500 font-medium">Pronto</span>
         <span className="text-[10px] bg-[#141824] border border-[#222B3D] text-slate-300 px-2 py-0.5 rounded font-mono tracking-wide">
-          v1.0.3
+          v1.0.4
         </span>
 
         {/* Atalho Especial do Mestre 000 para o Painel de Licença */}
@@ -54,13 +60,18 @@ export function StatusBar({ onOpenMasterLicenca }: { onOpenMasterLicenca?: () =>
         )}
       </div>
 
-      {/* Alerta de Vencimento da Assinatura (3 dias antes - vermelho pequeno piscando) */}
+      {/* Alerta de Vencimento da Assinatura (3 dias antes - vermelho pequeno piscando e clicável) */}
       {licencaStatus.alertaAtivo && !licencaStatus.expirada && (
-        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/50 text-rose-300 font-mono text-[10px] font-semibold shadow-sm animate-pulse">
+        <button
+          type="button"
+          onClick={onOpenAlertaVencimento}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-950/80 hover:bg-rose-900/90 border border-rose-500/60 text-rose-300 font-mono text-[10px] font-semibold shadow-md animate-pulse cursor-pointer transition-colors"
+          title="Clique para ver a Chave PIX e dados de pagamento"
+        >
           <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping inline-block" />
           <AlertCircle size={12} className="text-rose-400 shrink-0" />
-          <span>Assinatura: Vence em {licencaStatus.diasRestantes} dia(s) ({licencaStatus.dataVencimentoFormatada})</span>
-        </div>
+          <span>Assinatura: Vence em {licencaStatus.diasRestantes} dia(s) ({licencaStatus.dataVencimentoFormatada}) • Pagar PIX</span>
+        </button>
       )}
 
       {/* Canto Inferior Direito: Servidor & Relógio */}

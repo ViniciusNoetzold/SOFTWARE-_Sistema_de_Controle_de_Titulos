@@ -104,12 +104,24 @@ export function SistemaBloqueadoOverlay() {
             <span>Valor da Mensalidade:</span>
             <span className="text-emerald-400 font-bold">{formatCurrency(assinaturaLicenca.valorMensalidade || 180)}</span>
           </div>
-          {empresaConfig.chavePix && (
-            <div className="pt-2 border-t border-[#23293a] flex justify-between items-center text-[11px]">
-              <span className="text-slate-500">Chave PIX:</span>
-              <span className="text-amber-400 font-bold">{empresaConfig.chavePix}</span>
+          
+          {/* Chave PIX Oficial de Pagamento */}
+          <div className="pt-2 border-t border-[#23293a] flex flex-col gap-1 text-[11px]">
+            <div className="flex justify-between items-center">
+              <span className="text-slate-400">Chave PIX Oficial:</span>
+              <span className="text-amber-400 font-mono font-bold">{assinaturaLicenca.chavePixLicenca || '5554997030349'}</span>
             </div>
-          )}
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(assinaturaLicenca.chavePixLicenca || '5554997030349');
+                showToast('Chave PIX copiada para a área de transferência!');
+              }}
+              className="text-[10px] text-blue-400 hover:text-blue-300 font-mono text-right underline py-0.5"
+            >
+              📋 Copiar Chave PIX
+            </button>
+          </div>
         </div>
 
         {/* Botão de Notificação WhatsApp */}
@@ -120,7 +132,7 @@ export function SistemaBloqueadoOverlay() {
             className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-xs transition-all shadow-[0_0_25px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2.5 active:scale-[0.99]"
           >
             <Send size={18} />
-            <span>Já paguei! Enviar Comprovante no WhatsApp</span>
+            <span>Já paguei! Enviar Comprovante no WhatsApp (+55 54 9713-1399)</span>
           </button>
 
           <p className="text-[11px] text-slate-400 font-mono">

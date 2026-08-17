@@ -7,7 +7,9 @@ export const defaultAssinaturaLicenca: AssinaturaLicenca = {
   diaVencimento: 15,
   dataValidadeISO: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
   valorMensalidade: 180.00,
-  whatsappSuporte: '5511999999999',
+  whatsappSuporte: '555497131399',
+  chavePixLicenca: '5554997030349',
+  favorecidoPixLicenca: 'Mezzold Studios',
   bloqueioManual: false
 };
 

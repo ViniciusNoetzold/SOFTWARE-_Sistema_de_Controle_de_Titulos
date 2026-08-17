@@ -38,7 +38,9 @@ export interface AssinaturaLicenca {
   dataValidadeISO: string; // Ex: 2026-09-15T23:59:59.999Z
   ultimoPagamentoISO?: string;
   valorMensalidade: number; // Ex: 150.00
-  whatsappSuporte: string; // Ex: 5511999999999
+  whatsappSuporte: string; // Ex: 555497131399
+  chavePixLicenca?: string; // Ex: 5554997030349
+  favorecidoPixLicenca?: string; // Mezzold Studios
   bloqueioManual: boolean; // Trava forçada pelo mestre
 }
 
