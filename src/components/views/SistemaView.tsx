@@ -9,7 +9,7 @@ import { testFirebirdConnection, getFirebirdConfig, ConnectionTestResult } from 
 import { EmpresaConfig } from '../../types';
 
 export function SistemaView() {
-  const { auditLogs, empresaConfig, updateEmpresaConfig, addLog, showToast, usuarios } = useAppContext();
+  const { auditLogs, empresaConfig, updateEmpresaConfig, addLog, showToast, usuarios, toggleUsuarioAtivo } = useAppContext();
 
   // Abas de Configuração
   const [activeTab, setActiveTab] = useState<'EMPRESA' | 'FIREBIRD' | 'USUARIOS' | 'AUDITORIA'>('EMPRESA');
@@ -491,31 +491,52 @@ export function SistemaView() {
                     <th className="px-4 py-2.5 font-semibold">E-mail</th>
                     <th className="px-4 py-2.5 font-semibold">Perfil</th>
                     <th className="px-4 py-2.5 font-semibold text-center">Status</th>
+                    <th className="px-4 py-2.5 font-semibold text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#232836]">
-                  {usuarios.map(u => (
-                    <tr key={u.id} className="hover:bg-[#1f2432]/70 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-100 flex items-center gap-2">
-                        <img src={u.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'} alt={u.nome} className="w-6 h-6 rounded-full object-cover" />
-                        <span>{u.nome}</span>
-                      </td>
-                      <td className="px-4 py-2.5 font-mono text-red-400 font-bold">@{u.username}</td>
-                      <td className="px-4 py-2.5 font-mono text-slate-400">{u.email}</td>
-                      <td className="px-4 py-2.5">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
-                          u.perfil === 'ADMIN' ? 'bg-red-950 text-red-300 border border-red-800' : 'bg-blue-950 text-blue-300 border border-blue-800'
-                        }`}>
-                          {u.perfil}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${u.ativo ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-red-950 text-red-400 border border-red-800'}`}>
-                          {u.ativo ? 'ATIVO' : 'INATIVO'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {usuarios.map(u => {
+                    const isMaster = u.username === '000';
+                    return (
+                      <tr key={u.id} className="hover:bg-[#1f2432]/70 transition-colors">
+                        <td className="px-4 py-2.5 font-bold text-slate-100 flex items-center gap-2">
+                          <img src={u.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'} alt={u.nome} className="w-6 h-6 rounded-full object-cover" />
+                          <span>{u.nome}</span>
+                          {isMaster && <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 rounded font-mono">MESTRE</span>}
+                        </td>
+                        <td className="px-4 py-2.5 font-mono text-red-400 font-bold">@{u.username}</td>
+                        <td className="px-4 py-2.5 font-mono text-slate-400">{u.email}</td>
+                        <td className="px-4 py-2.5">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+                            u.perfil === 'ADMIN' ? 'bg-red-950 text-red-300 border border-red-800' : 'bg-blue-950 text-blue-300 border border-blue-800'
+                          }`}>
+                            {u.perfil}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${u.ativo ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-red-950 text-red-400 border border-red-800'}`}>
+                            {u.ativo ? 'ATIVO' : 'INATIVO'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-center">
+                          {isMaster ? (
+                            <span className="text-[10px] text-amber-400 font-mono">Protegido</span>
+                          ) : (
+                            <button
+                              onClick={() => toggleUsuarioAtivo(u.id)}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono transition-all ${
+                                u.ativo 
+                                  ? 'bg-red-500/10 text-red-400 hover:bg-red-600 hover:text-white border border-red-500/30'
+                                  : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30'
+                              }`}
+                            >
+                              {u.ativo ? 'Inativar' : 'Reativar'}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -16,8 +16,9 @@ export function LoginView() {
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Se existe último usuário lembrado no dispositivo
-  const isRememberedMode = !!lastLoggedUser;
+  // Se existe último usuário lembrado no dispositivo e ele está ativo
+  const isLastUserActive = lastLoggedUser ? (usuarios.find(u => u.username === lastLoggedUser.username)?.ativo ?? true) : false;
+  const isRememberedMode = !!lastLoggedUser && isLastUserActive;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();

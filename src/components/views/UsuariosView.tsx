@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { 
   Users, UserPlus, Shield, CheckCircle2, XCircle, Search, 
-  Key, Mail, UserCheck, ShieldAlert, Edit2, Lock, Eye, EyeOff, KeyRound, Sparkles
+  Key, Mail, UserCheck, ShieldAlert, Edit2, Lock, Eye, EyeOff, KeyRound, Sparkles, Crown, Ban
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { Usuario, PerfilUsuario } from '../../types';
@@ -20,6 +20,7 @@ export function UsuariosView() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPerfil, setFilterPerfil] = useState<string>('TODOS');
+  const [filterStatus, setFilterStatus] = useState<string>('TODOS');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [showModalPassword, setShowModalPassword] = useState(false);
@@ -32,7 +33,8 @@ export function UsuariosView() {
     email: '',
     senha: '',
     perfil: 'OPERADOR' as PerfilUsuario,
-    avatarUrl: ''
+    avatarUrl: '',
+    ativo: true
   });
 
   const toggleCardPasswordVisibility = (userId: string) => {
@@ -51,7 +53,8 @@ export function UsuariosView() {
       email: '',
       senha: '',
       perfil: 'OPERADOR',
-      avatarUrl: PRESET_AVATARS[0].url
+      avatarUrl: PRESET_AVATARS[0].url,
+      ativo: true
     });
     setIsModalOpen(true);
   };
@@ -65,7 +68,8 @@ export function UsuariosView() {
       email: user.email,
       senha: user.senhaHash,
       perfil: user.perfil,
-      avatarUrl: user.avatarUrl || PRESET_AVATARS[0].url
+      avatarUrl: user.avatarUrl || PRESET_AVATARS[0].url,
+      ativo: user.ativo
     });
     setIsModalOpen(true);
   };
@@ -79,25 +83,28 @@ export function UsuariosView() {
     }
 
     if (editingUserId) {
-      // Edição
+      // Bloqueio especial: Usuário Mestre 000 nunca pode ser inativado
+      const targetUser = usuarios.find(u => u.id === editingUserId);
+      const finalAtivo = targetUser?.username === '000' ? true : formData.ativo;
+
       updateUsuario(editingUserId, {
         nome: formData.nome,
         username: formData.username,
         email: formData.email,
         senhaHash: formData.senha,
         perfil: formData.perfil,
-        avatarUrl: formData.avatarUrl
+        avatarUrl: formData.avatarUrl,
+        ativo: finalAtivo
       });
       setIsModalOpen(false);
     } else {
-      // Criação
       const res = addUsuario({
         nome: formData.nome,
         username: formData.username,
         email: formData.email,
         senhaHash: formData.senha,
         perfil: formData.perfil,
-        ativo: true,
+        ativo: formData.ativo,
         avatarUrl: formData.avatarUrl
       });
 
@@ -117,8 +124,11 @@ export function UsuariosView() {
       u.username.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchPerfil = filterPerfil === 'TODOS' || u.perfil === filterPerfil;
+    const matchStatus = filterStatus === 'TODOS' || 
+      (filterStatus === 'ATIVO' && u.ativo) || 
+      (filterStatus === 'INATIVO' && !u.ativo);
 
-    return matchSearch && matchPerfil;
+    return matchSearch && matchPerfil && matchStatus;
   });
 
   // Se o usuário logado não for ADMIN
@@ -130,7 +140,7 @@ export function UsuariosView() {
         <ShieldAlert size={56} className="text-red-500 mb-4 animate-bounce" />
         <h2 className="text-xl font-bold text-slate-100 uppercase tracking-wider">Acesso Restrito a Administradores</h2>
         <p className="text-xs text-slate-400 font-mono mt-2 max-w-md">
-          Apenas usuários com perfil de Administrador possuem permissão para acessar o cadastro e controle de permissões de usuários.
+          Apenas usuários com perfil de Administrador possuem permissão para acessar o cadastro, controle de permissões e inativação de contas.
         </p>
       </div>
     );
@@ -148,20 +158,20 @@ export function UsuariosView() {
           </div>
           <div>
             <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Gestão de Usuários & Permissões</h2>
-            <p className="text-[11px] text-slate-400 font-mono">Edite dados, senhas de acesso e perfis de permissão do sistema.</p>
+            <p className="text-[11px] text-slate-400 font-mono">Cadastre, edite credenciais e inative acessos sem excluir o histórico.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
           
           {/* Busca */}
-          <div className="relative flex-1 md:w-64">
+          <div className="relative flex-1 md:w-56">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
             <input
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Buscar por nome ou e-mail..."
+              placeholder="Buscar por nome ou login..."
               className="w-full bg-[#11131a] border border-[#2b3242] rounded-xl pl-9 pr-3 py-2 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-red-500"
             />
           </div>
@@ -176,6 +186,17 @@ export function UsuariosView() {
             <option value="ADMIN">ADMIN</option>
             <option value="OPERADOR">OPERADOR</option>
             <option value="FINANCEIRO">FINANCEIRO</option>
+          </select>
+
+          {/* Filtro Status */}
+          <select
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+            className="bg-[#11131a] border border-[#2b3242] rounded-xl px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-red-500"
+          >
+            <option value="TODOS">Todos os Status</option>
+            <option value="ATIVO">Apenas Ativos</option>
+            <option value="INATIVO">Apenas Inativos</option>
           </select>
 
           {/* Botão Novo Usuário */}
@@ -194,23 +215,36 @@ export function UsuariosView() {
       <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pr-1">
         {filteredUsers.map(u => {
           const isPasswordShown = !!visiblePasswords[u.id];
+          const isMaster = u.username === '000';
 
           return (
             <div 
               key={u.id}
-              className={`bg-[#161922] border rounded-2xl p-5 shadow-xl flex flex-col justify-between transition-all ${
-                u.ativo ? 'border-[#2b3242] hover:border-[#3b4458]' : 'border-red-950/60 bg-[#12141c] opacity-75'
+              className={`border rounded-2xl p-5 shadow-xl flex flex-col justify-between transition-all ${
+                u.ativo 
+                  ? 'bg-[#161922] border-[#2b3242] hover:border-[#3b4458]' 
+                  : 'bg-[#12141c] border-red-900/40 opacity-75'
               }`}
             >
               <div>
                 {/* Top Bar do Card */}
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={u.avatarUrl || PRESET_AVATARS[0].url}
-                      alt={u.nome}
-                      className="w-12 h-12 rounded-xl object-cover border border-[#2b3242] shrink-0 shadow-md"
-                    />
+                    <div className="relative">
+                      <img
+                        src={u.avatarUrl || PRESET_AVATARS[0].url}
+                        alt={u.nome}
+                        className={`w-12 h-12 rounded-xl object-cover border shrink-0 shadow-md ${
+                          u.ativo ? 'border-[#2b3242]' : 'border-red-800 grayscale'
+                        }`}
+                      />
+                      {isMaster && (
+                        <div className="absolute -top-1.5 -right-1.5 bg-amber-500 text-slate-950 p-1 rounded-full shadow-lg" title="Usuário Mestre (Super Admin)">
+                          <Crown size={10} strokeWidth={3} />
+                        </div>
+                      )}
+                    </div>
+
                     <div>
                       <h3 className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
                         <span>{u.nome}</span>
@@ -218,20 +252,31 @@ export function UsuariosView() {
                           <span className="bg-emerald-500/20 text-emerald-400 text-[9px] px-1.5 py-0.5 rounded font-mono font-bold">Você</span>
                         )}
                       </h3>
-                      <p className="text-[11px] text-slate-400 font-mono">@{u.username}</p>
+                      <p className="text-[11px] text-slate-400 font-mono flex items-center gap-1">
+                        <span>@{u.username}</span>
+                        {isMaster && <span className="text-[9px] text-amber-400 font-bold bg-amber-950/60 px-1 rounded border border-amber-500/30">MESTRE</span>}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Badge Perfil */}
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
-                    u.perfil === 'ADMIN' 
-                      ? 'bg-red-600/20 text-red-400 border border-red-500/30'
-                      : u.perfil === 'FINANCEIRO'
-                      ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                  }`}>
-                    {u.perfil}
-                  </span>
+                  {/* Status Badge */}
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                      u.perfil === 'ADMIN' 
+                        ? 'bg-red-600/20 text-red-400 border border-red-500/30'
+                        : u.perfil === 'FINANCEIRO'
+                        ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                    }`}>
+                      {u.perfil}
+                    </span>
+
+                    <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                      u.ativo ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/30 text-red-300 border border-red-500/50'
+                    }`}>
+                      {u.ativo ? '● ATIVO' : '✕ INATIVO'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Informações detalhadas */}
@@ -270,29 +315,40 @@ export function UsuariosView() {
               </div>
 
               {/* Ações de Gerenciamento */}
-              <div className="mt-4 pt-3 border-t border-[#232938] flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-[#232938] flex items-center justify-between gap-2">
                 
-                {/* Botão de Status Ativo / Inativo */}
-                <button
-                  onClick={() => toggleUsuarioAtivo(u.id)}
-                  disabled={currentUser?.id === u.id}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    u.ativo 
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20' 
-                      : 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20'
-                  }`}
-                >
-                  {u.ativo ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-                  <span>{u.ativo ? 'Conta Ativa' : 'Conta Inativa'}</span>
-                </button>
+                {/* Botão Inativar / Reativar Acesso */}
+                {isMaster ? (
+                  <span className="text-[10px] font-mono text-amber-400/80 bg-amber-950/30 px-2 py-1 rounded border border-amber-500/20 flex items-center gap-1">
+                    <Shield size={11} /> Mestre Protegido
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => toggleUsuarioAtivo(u.id)}
+                    disabled={currentUser?.id === u.id}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      u.ativo 
+                        ? 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-600 hover:text-white' 
+                        : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white'
+                    }`}
+                    title={
+                      currentUser?.id === u.id 
+                        ? 'Você não pode inativar a própria conta logada' 
+                        : u.ativo ? 'Inativar acesso deste usuário' : 'Reativar acesso deste usuário'
+                    }
+                  >
+                    {u.ativo ? <Ban size={13} /> : <CheckCircle2 size={13} />}
+                    <span>{u.ativo ? 'Inativar Usuário' : 'Reativar Usuário'}</span>
+                  </button>
+                )}
 
                 {/* Botão Editar */}
                 <button
                   onClick={() => handleOpenEditModal(u)}
-                  className="bg-red-600/15 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 text-xs px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                  className="bg-red-600/15 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 text-xs px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-sm ml-auto"
                 >
                   <Edit2 size={13} />
-                  <span>Editar Usuário</span>
+                  <span>Editar</span>
                 </button>
 
               </div>
@@ -415,6 +471,48 @@ export function UsuariosView() {
                     {showModalPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+              </div>
+
+              {/* Status da Conta (Ativo / Inativo) */}
+              <div className="pt-2">
+                <label className="block text-[10px] uppercase text-slate-400 font-bold mb-1.5">
+                  Situação de Acesso da Conta:
+                </label>
+                
+                {formData.username === '000' ? (
+                  <div className="p-2.5 bg-amber-950/40 border border-amber-500/40 rounded-xl text-[11px] text-amber-300 font-bold flex items-center gap-2">
+                    <Shield size={14} />
+                    <span>Conta Mestre Permanente (Sempre Ativa)</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, ativo: true })}
+                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                        formData.ativo 
+                          ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
+                          : 'bg-[#11131a] border-[#2b3242] text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <CheckCircle2 size={15} />
+                      <span>Ativo (Permite Login)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, ativo: false })}
+                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                        !formData.ativo 
+                          ? 'bg-red-950/60 border-red-500 text-red-300 shadow-[0_0_10px_rgba(239,68,68,0.3)]' 
+                          : 'bg-[#11131a] border-[#2b3242] text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <Ban size={15} />
+                      <span>Inativo (Bloqueado)</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="pt-3 border-t border-[#2b3242] flex justify-end gap-3">
