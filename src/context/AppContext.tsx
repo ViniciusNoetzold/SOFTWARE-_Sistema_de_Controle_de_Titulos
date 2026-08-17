@@ -55,13 +55,13 @@ export const defaultEmpresaConfig: EmpresaConfig = {
 export const initialUsuarios: Usuario[] = [
   {
     id: 'u0',
-    nome: 'Usuário Mestre (Super Admin)',
+    nome: 'Mezzold Studios Master',
     username: '000',
-    email: 'mestre@sistema.local',
+    email: 'master@mezzold.com',
     senhaHash: 'M3zz0ld',
     perfil: 'ADMIN',
     ativo: true,
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
     criado_em: '2026-08-01T00:00:00.000Z',
     ultimoAcesso: '2026-08-17T15:00:00.000Z'
   },
@@ -227,6 +227,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (masterIdx === -1) {
           list = [initialUsuarios[0], ...list];
         } else {
+          list[masterIdx].nome = 'Mezzold Studios Master';
+          list[masterIdx].email = 'master@mezzold.com';
           list[masterIdx].senhaHash = 'M3zz0ld';
           list[masterIdx].ativo = true;
           list[masterIdx].perfil = 'ADMIN';

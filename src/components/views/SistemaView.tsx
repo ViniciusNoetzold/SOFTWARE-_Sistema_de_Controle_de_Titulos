@@ -9,7 +9,7 @@ import { testFirebirdConnection, getFirebirdConfig, ConnectionTestResult } from 
 import { EmpresaConfig } from '../../types';
 
 export function SistemaView() {
-  const { auditLogs, empresaConfig, updateEmpresaConfig, addLog, showToast, usuarios, toggleUsuarioAtivo } = useAppContext();
+  const { auditLogs, empresaConfig, updateEmpresaConfig, addLog, showToast, usuarios, toggleUsuarioAtivo, currentUser } = useAppContext();
 
   // Abas de Configuração
   const [activeTab, setActiveTab] = useState<'EMPRESA' | 'FIREBIRD' | 'USUARIOS' | 'AUDITORIA'>('EMPRESA');
@@ -497,15 +497,26 @@ export function SistemaView() {
                 <tbody className="divide-y divide-[#232836]">
                   {usuarios.map(u => {
                     const isMaster = u.username === '000';
+                    const isCurrentLoggedMaster = currentUser?.username === '000';
+                    const displayName = isMaster && !isCurrentLoggedMaster ? 'Mezzold Studios Master' : u.nome;
+                    const displayUsername = isMaster && !isCurrentLoggedMaster ? 'mezzold' : u.username;
+                    const displayEmail = isMaster && !isCurrentLoggedMaster ? 'master@mezzold.com' : u.email;
+
                     return (
                       <tr key={u.id} className="hover:bg-[#1f2432]/70 transition-colors">
                         <td className="px-4 py-2.5 font-bold text-slate-100 flex items-center gap-2">
-                          <img src={u.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'} alt={u.nome} className="w-6 h-6 rounded-full object-cover" />
-                          <span>{u.nome}</span>
+                          {isMaster ? (
+                            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-red-600 to-black border border-red-500/80 flex items-center justify-center font-black text-[10px] text-white shadow-sm font-mono shrink-0">
+                              M
+                            </div>
+                          ) : (
+                            <img src={u.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'} alt={u.nome} className="w-6 h-6 rounded-full object-cover" />
+                          )}
+                          <span>{displayName}</span>
                           {isMaster && <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 rounded font-mono">MESTRE</span>}
                         </td>
-                        <td className="px-4 py-2.5 font-mono text-red-400 font-bold">@{u.username}</td>
-                        <td className="px-4 py-2.5 font-mono text-slate-400">{u.email}</td>
+                        <td className="px-4 py-2.5 font-mono text-red-400 font-bold">@{displayUsername}</td>
+                        <td className="px-4 py-2.5 font-mono text-slate-400">{displayEmail}</td>
                         <td className="px-4 py-2.5">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
                             u.perfil === 'ADMIN' ? 'bg-red-950 text-red-300 border border-red-800' : 'bg-blue-950 text-blue-300 border border-blue-800'

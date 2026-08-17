@@ -208,27 +208,38 @@ export function LoginView() {
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            {usuarios.filter(u => u.ativo).map((u) => (
-              <button
-                key={u.id}
-                type="button"
-                onClick={() => handleQuickSelectUser(u.username, u.senhaHash, u.nome)}
-                className="bg-[#1a1e2c] hover:bg-[#252c40] border border-[#2e374d] hover:border-red-500/50 text-slate-200 p-2 rounded-xl text-[10px] font-mono text-center transition-all flex flex-col items-center gap-1 group"
-                title={`Preencher credenciais de ${u.nome}`}
-              >
-                <span className={`font-bold uppercase tracking-wider ${
-                  u.perfil === 'ADMIN' ? 'text-red-400' : u.perfil === 'FINANCEIRO' ? 'text-emerald-400' : 'text-blue-400'
-                }`}>
-                  {u.username}
-                </span>
-                <span className="text-slate-400 text-[9px] truncate max-w-full font-sans font-semibold">
-                  {u.nome.split(' ')[0]}
-                </span>
-                <span className="text-slate-500 text-[9px] font-mono bg-[#11131a] px-1.5 py-0.5 rounded border border-[#2b3242] group-hover:text-amber-300">
-                  🔑 {u.senhaHash}
-                </span>
-              </button>
-            ))}
+            {usuarios.filter(u => u.ativo).map((u) => {
+              const isMaster = u.username === '000';
+              return (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => handleQuickSelectUser(u.username, u.senhaHash, isMaster ? 'Mezzold Master' : u.nome)}
+                  className={`border text-slate-200 p-2 rounded-xl text-[10px] font-mono text-center transition-all flex flex-col items-center gap-1 group ${
+                    isMaster 
+                      ? 'bg-gradient-to-b from-[#221a29] to-[#161922] border-amber-500/50 hover:border-amber-400' 
+                      : 'bg-[#1a1e2c] hover:bg-[#252c40] border-[#2e374d] hover:border-red-500/50'
+                  }`}
+                  title={isMaster ? 'Preencher credenciais Mezzold Master' : `Preencher credenciais de ${u.nome}`}
+                >
+                  <span className={`font-bold uppercase tracking-wider ${
+                    isMaster ? 'text-amber-400' : u.perfil === 'ADMIN' ? 'text-red-400' : u.perfil === 'FINANCEIRO' ? 'text-emerald-400' : 'text-blue-400'
+                  }`}>
+                    {isMaster ? '👑 MASTER' : u.username}
+                  </span>
+                  <span className="text-slate-400 text-[9px] truncate max-w-full font-sans font-semibold">
+                    {isMaster ? 'Mezzold Studios' : u.nome.split(' ')[0]}
+                  </span>
+                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                    isMaster 
+                      ? 'text-amber-300 bg-amber-950/50 border-amber-500/40' 
+                      : 'text-slate-500 bg-[#11131a] border-[#2b3242] group-hover:text-amber-300'
+                  }`}>
+                    {isMaster ? '🔒 M3zz0ld' : `🔑 ${u.senhaHash}`}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
